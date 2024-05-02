@@ -40,10 +40,11 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "apps.accounts",
     "apps.common",
-    "apps.shop", 
+    "apps.accounts",
+    "apps.profiles",
     "apps.general",
+    "apps.shop"
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -255,3 +256,7 @@ JAZZMIN_SETTINGS = {
 }
 
 TESTING = False
+
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID") 
+GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET") 
+FACEBOOK_APP_ID = config("FACEBOOK_APP_ID") 
