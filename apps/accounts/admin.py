@@ -1,11 +1,10 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.utils.translation import gettext_lazy as _
 from .forms import CustomAdminUserChangeForm, CustomAdminUserCreationForm
-from .models import Timezone, User
+from .models import User
 
 
 class Group(DjangoGroup):

@@ -5,6 +5,7 @@ from django.conf import settings
 import threading
 from apps.accounts.models import User
 
+
 class EmailThread(threading.Thread):
     def __init__(self, email: EmailMessage):
         self.email = email

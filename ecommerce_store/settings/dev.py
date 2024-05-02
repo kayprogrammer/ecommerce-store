@@ -2,6 +2,8 @@ from .base import *
 from django.utils.log import DEFAULT_LOGGING
 import logging, logging.config
 
+DEBUG = True
+
 logger = logging.getLogger(__name__)
 
 LOG_LEVEL = "INFO"
