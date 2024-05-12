@@ -230,14 +230,11 @@ JAZZMIN_SETTINGS = {
     "icons": {
         "accounts.Group": "fas fa-users",
         "accounts.user": "fas fa-user-cog",
-        "accounts.timezone": "fas fa-clock",
         "general.sitedetail": "fas fa-info-circle",
         "general.subscriber": "fas fa-users",
-        "general.review": "fas fa-thumbs-up",
-        "listings.category": "fas fa-list",
-        "listings.listing": "fas fa-list-alt",
-        "listings.bid": "fas fa-dollar-sign",
-        "listings.watchlist": "fas fa-heart",
+        "shop.review": "fas fa-thumbs-up",
+        "shop.category": "fas fa-list",
+        "shop.product": "fas fa-list-alt",
         "sites.site": "fas fa-globe",
     },
     # Icons that are used when one is not manually specified

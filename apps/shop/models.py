@@ -24,8 +24,8 @@ class Category(BaseModel):
     
 class Product(Category):
     desc = models.TextField()
-    price_old = models.DecimalField(max_digits=10, decimal_places=True)
-    price_current = models.DecimalField(max_digits=10, decimal_places=True)
+    price_old = models.DecimalField(max_digits=10, decimal_places=2)
+    price_current = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
     sizes = models.ManyToManyField(Size)
     colours = models.ManyToManyField(Colour)
