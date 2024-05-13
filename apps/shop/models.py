@@ -35,6 +35,17 @@ class ProductImage(BaseModel):
 
     def __str__(self):
         return str(self.product.name)
+
+class OrderItem(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    guest_id = models.CharField(max_length=100, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    size = models.ForeignKey(Size, on_delete=models.CASCADE, null=True)
+    color = models.ForeignKey(Colour, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return str(self.product.name)
     
 RATING_CHOICES = (
     (1, 1),
