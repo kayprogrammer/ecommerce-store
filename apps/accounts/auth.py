@@ -35,6 +35,6 @@ def register_social_user(email: str, name: str, avatar: str = None):
             email=email,
             password=settings.SOCIAL_SECRET,
             avatar=avatar,
-            is_email_verified=True
+            is_email_verified=True,
         )
     return user

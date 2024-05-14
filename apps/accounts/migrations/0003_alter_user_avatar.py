@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0002_group'),
+        ("accounts", "0002_group"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='avatar',
-            field=models.URLField(default='https://res.cloudinary.com/kay-development/image/upload/v1679787683/important/brad_dozo7x.jpg'),
+            model_name="user",
+            name="avatar",
+            field=models.URLField(
+                default="https://res.cloudinary.com/kay-development/image/upload/v1679787683/important/brad_dozo7x.jpg"
+            ),
         ),
     ]

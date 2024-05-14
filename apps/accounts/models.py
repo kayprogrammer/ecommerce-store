@@ -13,7 +13,9 @@ class User(AbstractBaseUser, BaseModel, PermissionsMixin):
         verbose_name=(_("Last name")), max_length=25, null=True
     )
     email = models.EmailField(verbose_name=(_("Email address")), unique=True)
-    avatar = models.URLField(default="https://res.cloudinary.com/kay-development/image/upload/v1679787683/important/brad_dozo7x.jpg")
+    avatar = models.URLField(
+        default="https://res.cloudinary.com/kay-development/image/upload/v1679787683/important/brad_dozo7x.jpg"
+    )
 
     terms_agreement = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)

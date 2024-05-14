@@ -34,6 +34,7 @@ class SubscriberResource(resources.ModelResource):
         model = Subscriber
         fields = ("email",)
 
+
 class SubscriberAdmin(ExportActionMixin, admin.ModelAdmin):
     list_display = ["email", "exported", "created_at"]
     list_filter = ["email", "exported", "created_at"]
@@ -44,6 +45,7 @@ class SubscriberAdmin(ExportActionMixin, admin.ModelAdmin):
         qs = self.get_export_queryset(request)
         qs.update(exported=True)
         return response
+
 
 admin.site.register(SiteDetail, SiteDetailAdmin)
 admin.site.register(Subscriber, SubscriberAdmin)

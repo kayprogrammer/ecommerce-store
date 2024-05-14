@@ -8,10 +8,12 @@ from .auth import Google, register_social_user
 
 # Create your views here.
 
+
 class LoginPageView(LogoutRequiredMixin, View):
     def get(self, request):
         context = {}
         return render(request, "accounts/login.html", context=context)
+
 
 class TokenView(LogoutRequiredMixin, View):
     def get(self, request):
