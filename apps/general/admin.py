@@ -3,12 +3,12 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from import_export import resources
 from import_export.admin import ExportActionMixin
-from .models import SiteDetail, Subscriber
+from .models import Message, SiteDetail, Subscriber
 
 
 class SiteDetailAdmin(admin.ModelAdmin):
     fieldsets = (
-        ("General", {"fields": ["name", "email", "phone", "address"]}),
+        ("General", {"fields": ["name", "email", "phone", "address", "map_url"]}),
         ("Social", {"fields": ["fb", "tw", "wh", "ig"]}),
     )
 
@@ -37,7 +37,7 @@ class SubscriberResource(resources.ModelResource):
 
 class SubscriberAdmin(ExportActionMixin, admin.ModelAdmin):
     list_display = ["email", "exported", "created_at"]
-    list_filter = ["email", "exported", "created_at"]
+    list_filter = list_display
     resource_class = SubscriberResource
 
     def export_action(self, request, *args, **kwargs):
@@ -46,6 +46,10 @@ class SubscriberAdmin(ExportActionMixin, admin.ModelAdmin):
         qs.update(exported=True)
         return response
 
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ("name", "email", "subject", "addressed")
+    list_filter = list_display
 
 admin.site.register(SiteDetail, SiteDetailAdmin)
 admin.site.register(Subscriber, SubscriberAdmin)
+admin.site.register(Message, MessageAdmin)
