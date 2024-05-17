@@ -78,6 +78,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.common.context_processors.sitedetail"
             ],
         },
     },
@@ -258,6 +259,8 @@ GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET")
 FACEBOOK_APP_ID = config("FACEBOOK_APP_ID")
 SOCIAL_SECRET = config("SOCIAL_SECRET")
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 FIRST_SUPERUSER_EMAIL = config("FIRST_SUPERUSER_EMAIL")
 FIRST_SUPERUSER_PASSWORD = config("FIRST_SUPERUSER_PASSWORD")

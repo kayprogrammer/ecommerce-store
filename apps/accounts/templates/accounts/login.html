@@ -1,0 +1,57 @@
+{% extends "common/index.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="card text-center">
+            <h4 class="card-header">LOGIN USER</h4>
+            <div class="card-body">
+                <h5 class="card-title">Login via Google or Facebook</h5>
+                <div id="google-login"></div>
+                <div
+                    class="fb-login-button"
+                    data-max-rows="1"
+                    data-size="<medium, large>"
+                    data-button-type="continue_with"
+                    data-width="<100% or px>"
+                    data-scope="<comma separated list of permissions, e.g. public_profile, email>">
+                </div>
+
+            </div>
+            <div class="card-footer text-muted">
+                2 days ago
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+<script type="text/Javascript">
+    function handleCredentialResponse(response) {
+        window.location.href = `/token/?auth_token=${response?.credential}`
+    }
+    window.onload = function () {
+        google.accounts.id.initialize({
+          client_id: "{{ sitedetail.google_client_id }}",
+          callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("google-login"),
+          { theme: "outline", size: "large" }  // customization attributes
+        );
+    }
+
+    // Facebook login
+    window.fbAsyncInit = function () {
+      FB.init({
+        appId: "{{ sitedetail.facebook_app_id }}",
+        cookie: true, // Enable cookies to allow the server to access the session.
+        xfbml: true, // Parse social plugins on this webpage.
+        version: "v5.0", // Use this Graph API version for this call.
+      });
+
+      FB.getLoginStatus(function (response) {
+        console.log(response)
+      });
+    };
+</script>
+{% endblock %}
