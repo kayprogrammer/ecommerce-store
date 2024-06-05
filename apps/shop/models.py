@@ -77,7 +77,9 @@ class Order(BaseModel):
     delivery_status = models.CharField(
         max_length=20, default="PENDING", choices=DELIVERY_STATUS_CHOICES
     )
-    payment_status = models.CharField(max_length=20, default="PENDING", choices=PAYMENT_STATUS_CHOICES)
+    payment_status = models.CharField(
+        max_length=20, default="PENDING", choices=PAYMENT_STATUS_CHOICES
+    )
     shipping_address = models.ForeignKey(
         ShippingAddress, on_delete=models.CASCADE, blank=True, null=True
     )

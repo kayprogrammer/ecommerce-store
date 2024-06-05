@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from apps.common.models import BaseModel
 from .managers import CustomUserManager
 
+DEFAULT_AVATAR_URL = "https://res.cloudinary.com/kay-development/image/upload/v1679787683/important/brad_dozo7x.jpg"
+
 
 class User(AbstractBaseUser, BaseModel, PermissionsMixin):
     first_name = models.CharField(
@@ -13,12 +15,8 @@ class User(AbstractBaseUser, BaseModel, PermissionsMixin):
         verbose_name=(_("Last name")), max_length=25, null=True
     )
     email = models.EmailField(verbose_name=(_("Email address")), unique=True)
-    avatar = models.URLField(
-        default="https://res.cloudinary.com/kay-development/image/upload/v1679787683/important/brad_dozo7x.jpg"
-    )
+    avatar = models.URLField(default=DEFAULT_AVATAR_URL)
 
-    terms_agreement = models.BooleanField(default=False)
-    is_email_verified = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 

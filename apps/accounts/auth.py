@@ -1,8 +1,9 @@
 from django.conf import settings
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
+import facebook
 
-from .models import User
+from .models import DEFAULT_AVATAR_URL, User
 
 
 class Google:
@@ -23,6 +24,24 @@ class Google:
             return None
 
 
+class Facebook:
+    """
+    Facebook class to fetch the user info and return it
+    """
+
+    @staticmethod
+    def validate(auth_token):
+        """
+        validate method Queries the facebook GraphAPI to fetch the user info
+        """
+        try:
+            graph = facebook.GraphAPI(access_token=auth_token)
+            profile = graph.request("/me?fields=name,email")
+            return profile
+        except:
+            return None
+
+
 def register_social_user(email: str, name: str, avatar: str = None):
     user = User.objects.get_or_none(email=email)
     if not user:
@@ -34,7 +53,6 @@ def register_social_user(email: str, name: str, avatar: str = None):
             last_name=last_name,
             email=email,
             password=settings.SOCIAL_SECRET,
-            avatar=avatar,
-            is_email_verified=True,
+            avatar=avatar or DEFAULT_AVATAR_URL,
         )
     return user

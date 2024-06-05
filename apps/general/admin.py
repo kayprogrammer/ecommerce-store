@@ -46,9 +46,11 @@ class SubscriberAdmin(ExportActionMixin, admin.ModelAdmin):
         qs.update(exported=True)
         return response
 
+
 class MessageAdmin(admin.ModelAdmin):
     list_display = ("name", "email", "subject", "addressed")
     list_filter = list_display
+
 
 admin.site.register(SiteDetail, SiteDetailAdmin)
 admin.site.register(Subscriber, SubscriberAdmin)

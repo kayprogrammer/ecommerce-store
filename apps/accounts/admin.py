@@ -54,7 +54,6 @@ class UserAdmin(BaseUserAdmin):
             _("Permissions and Groups"),
             {
                 "fields": (
-                    "is_email_verified",
                     "is_active",
                     "is_staff",
                     "is_superuser",
@@ -65,7 +64,7 @@ class UserAdmin(BaseUserAdmin):
         ),
         (
             _("Important Dates"),
-            {"fields": ("date_joined", "last_login")},
+            {"fields": ("last_login",)},
         ),
     )
 
@@ -98,7 +97,8 @@ class UserAdmin(BaseUserAdmin):
                 "is_superuser",
                 "is_active",
             ]
-        return readonly_fields
+            return readonly_fields
+        return self.readonly_fields
 
 
 admin.site.register(User, UserAdmin)

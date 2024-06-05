@@ -1,25 +1,55 @@
 {% extends "common/index.html" %}
 {% block title %}Login{% endblock %}
 {% block content %}
+    <style>
+        /* CSS for the custom Facebook login button */
+        .fb-button {
+            background-color: #1877F2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-flex;
+            text-align: center;
+            text-decoration: none;
+            align-items:center;
+        }
+
+        .fb-button:hover {
+            background-color: #165db7;
+        }
+
+        .fb-button i {
+          margin-right:10px;
+          font-size:25px;
+        }
+    </style>
     <div class="container">
         <div class="card text-center w-60" style="margin:0 auto; float:none;">
             <h4 class="card-header">LOGIN USER</h4>
             <div class="card-body">
                 <h5 class="card-title">Login via Google or Facebook</h5>
-                <div class="ml-auto mr-auto" style="max-width: fit-content;" id="google-login"></div>
-                <div class="fb-login-button" data-width="240" data-size="large" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false"></div>
+                <div class="ml-auto mr-auto mb-2" style="max-width: fit-content;" id="google-login"></div>
+                {% comment %} <fb:login-button scope="public_profile,email" onlogin="checkLoginState();" class="fb-login-button" data-width="240" data-size="large" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false"></fb:login-button> {% endcomment %}
+                <button class="fb-button" onclick="facebookLogin()"><i class="fab fa-facebook-square"></i>Sign in with Facebook</button>
             </div>
             <div class="card-footer text-muted">
                 2 days ago
             </div>
         </div>
     </div>
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+
 {% endblock %}
 
 {% block js %}
 <script type="text/Javascript">
     function handleCredentialResponse(response) {
-        window.location.href = `/token/?auth_token=${response?.credential}`
+        window.location.href = `/accounts/google/?auth_token=${response?.credential}`
     }
     window.onload = function () {
         google.accounts.id.initialize({
@@ -38,12 +68,29 @@
         appId: "{{ sitedetail.facebook_app_id }}",
         cookie: true, // Enable cookies to allow the server to access the session.
         xfbml: true, // Parse social plugins on this webpage.
-        version: "v5.0", // Use this Graph API version for this call.
+        version: "v10.0", // Use this Graph API version for this call.
       });
 
-      FB.getLoginStatus(function (response) {
-        console.log(response)
+      // Check the initial login status
+      FB.getLoginStatus(function(response) {
+          if (response.status === "connected") {
+            FB.logout()
+          }
       });
     };
+
+    // Custom Facebook login function
+    function facebookLogin() {
+        FB.login(function(response) {
+            if (response.authResponse) {
+                // User is logged in
+                var accessToken = response.authResponse.accessToken;
+                window.location.href = `/accounts/facebook/?auth_token=${accessToken}`                  
+            } else {
+                // User is not logged in
+                document.getElementById('status').innerHTML = 'User cancelled login or did not fully authorize.';
+            }
+        }, {scope: 'public_profile,email', auth_type: 'reauthorize'});
+    }
 </script>
 {% endblock %}
