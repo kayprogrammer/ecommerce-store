@@ -15,7 +15,16 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-
+    @property
+    def image_url(self):
+        url = None
+        if hasattr(self, "image"):
+            try:
+                url = self.image.url
+            except:
+                url = None
+        return url
+    
 def image_folder_to_upload(subfolder=""):
     folder = f"ecommerce-store/{subfolder}/"
     if subfolder == "":

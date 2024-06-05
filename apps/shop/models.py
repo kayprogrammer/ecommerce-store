@@ -1,3 +1,4 @@
+from distutils.command import upload
 import secrets
 from django.db import models
 from autoslug import AutoSlugField
@@ -28,6 +29,7 @@ class Colour(BaseModel):
 class Category(BaseModel):
     name = models.CharField(max_length=100)
     slug = AutoSlugField(populate_from=name, always_update=True)
+    image = models.ImageField(upload_to="category_images/")
 
     def __str__(self):
         return str(self.name)
@@ -48,6 +50,7 @@ class ProductImage(BaseModel):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="images"
     )
+    image = models.ImageField(upload_to="product_images/")
 
     def __str__(self):
         return str(self.product.name)

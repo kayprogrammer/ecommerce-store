@@ -7,8 +7,8 @@
             background-color: #1877F2;
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 8px 7px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
@@ -23,7 +23,7 @@
         }
 
         .fb-button i {
-          margin-right:10px;
+          margin-right:7px;
           font-size:25px;
         }
     </style>
@@ -33,7 +33,6 @@
             <div class="card-body">
                 <h5 class="card-title">Login via Google or Facebook</h5>
                 <div class="ml-auto mr-auto mb-2" style="max-width: fit-content;" id="google-login"></div>
-                {% comment %} <fb:login-button scope="public_profile,email" onlogin="checkLoginState();" class="fb-login-button" data-width="240" data-size="large" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false"></fb:login-button> {% endcomment %}
                 <button class="fb-button" onclick="facebookLogin()"><i class="fab fa-facebook-square"></i>Sign in with Facebook</button>
             </div>
             <div class="card-footer text-muted">
