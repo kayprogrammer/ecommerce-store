@@ -1,0 +1,1 @@
+PRODUCT_CATEGORIES = ["Clothing", "Skin care", "Gadgets", "Shoes", "Cars", "Appliances", "Jewelry", "Stationery"]
