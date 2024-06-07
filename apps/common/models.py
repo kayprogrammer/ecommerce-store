@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils import timezone
 from .managers import GetOrNoneManager
 
 
@@ -7,7 +8,7 @@ class BaseModel(models.Model):
     id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, editable=False, unique=True
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = GetOrNoneManager()

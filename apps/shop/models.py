@@ -11,6 +11,7 @@ from apps.shop.choices import (
 )
 from django.utils import timezone
 
+CATEGORY_IMAGE_PREFIX = "category_images/"
 
 class Size(BaseModel):
     value = models.CharField(max_length=5)
@@ -27,15 +28,19 @@ class Colour(BaseModel):
 
 
 class Category(BaseModel):
-    name = models.CharField(max_length=100)
-    slug = AutoSlugField(populate_from=name, always_update=True)
-    image = models.ImageField(upload_to="category_images/")
+    name = models.CharField(max_length=100, unique=True)
+    slug = AutoSlugField(populate_from="name", unique=True, always_update=True)
+    image = models.ImageField(upload_to=CATEGORY_IMAGE_PREFIX)
 
     def __str__(self):
         return str(self.name)
 
+    class Meta:
+        verbose_name_plural = "Categories"
 
-class Product(Category):
+class Product(BaseModel):
+    name = models.CharField(max_length=100)
+    slug = AutoSlugField(populate_from="name", unique=True, always_update=True)
     desc = models.TextField()
     price_old = models.DecimalField(max_digits=10, decimal_places=2)
     price_current = models.DecimalField(max_digits=10, decimal_places=2)
