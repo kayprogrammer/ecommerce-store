@@ -12,16 +12,18 @@ from apps.shop.choices import (
 from django.utils import timezone
 
 CATEGORY_IMAGE_PREFIX = "category_images/"
+PRODUCT_IMAGE_PREFIX = "product_images/"
+
 
 class Size(BaseModel):
-    value = models.CharField(max_length=5)
+    value = models.CharField(max_length=5, unique=True)
 
     def __str__(self):
         return str(self.value)
 
 
 class Colour(BaseModel):
-    value = models.CharField(max_length=20)
+    value = models.CharField(max_length=20, unique=True)
 
     def __str__(self):
         return str(self.value)
@@ -37,6 +39,7 @@ class Category(BaseModel):
 
     class Meta:
         verbose_name_plural = "Categories"
+
 
 class Product(BaseModel):
     name = models.CharField(max_length=100)
@@ -55,7 +58,7 @@ class ProductImage(BaseModel):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="images"
     )
-    image = models.ImageField(upload_to="product_images/")
+    image = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
 
     def __str__(self):
         return str(self.product.name)

@@ -25,7 +25,8 @@ class BaseModel(models.Model):
             except:
                 url = None
         return url
-    
+
+
 def image_folder_to_upload(subfolder=""):
     folder = f"ecommerce-store/{subfolder}/"
     if subfolder == "":

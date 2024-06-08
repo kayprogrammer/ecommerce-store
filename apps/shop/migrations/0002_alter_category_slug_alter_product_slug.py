@@ -5,20 +5,23 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('shop', '0001_initial'),
+        ("shop", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='category',
-            name='slug',
-            field=autoslug.fields.AutoSlugField(always_update=True, editable=False, populate_from='name', unique=True),
+            model_name="category",
+            name="slug",
+            field=autoslug.fields.AutoSlugField(
+                always_update=True, editable=False, populate_from="name", unique=True
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='slug',
-            field=autoslug.fields.AutoSlugField(always_update=True, editable=False, populate_from='name', unique=True),
+            model_name="product",
+            name="slug",
+            field=autoslug.fields.AutoSlugField(
+                always_update=True, editable=False, populate_from="name", unique=True
+            ),
         ),
     ]
