@@ -1,6 +1,7 @@
 from distutils.command import upload
 import secrets
 from django.db import models
+from django.db.models.fields.files import ImageFieldFile
 from autoslug import AutoSlugField
 from apps.accounts.models import User
 from apps.common.models import BaseModel
@@ -53,16 +54,29 @@ class Product(BaseModel):
     sizes = models.ManyToManyField(Size)
     colours = models.ManyToManyField(Colour)
 
+    # Only 3 images are allowed
+    image1 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
+    image2 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
+    image3 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
 
-class ProductImage(BaseModel):
-    product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="images"
-    )
-    image = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
-
-    def __str__(self):
-        return str(self.product.name)
-
+    def return_img_url(self, image: ImageFieldFile):
+        try: 
+            url = image.url
+        except:
+            url = None
+        return url
+    
+    @property
+    def image1_url(self):
+        return self.return_img_url(self.image1)
+    
+    @property
+    def image2_url(self):
+        return self.return_img_url(self.image2)
+    
+    @property
+    def image3_url(self):
+        return self.return_img_url(self.image3)
 
 class ShippingAddress(BaseModel):
     user = models.ForeignKey(
@@ -161,3 +175,11 @@ class Review(BaseModel):
 
     def __str__(self):
         return f"{self.user.full_name}----{self.product.name}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "product"],
+                name="unique_user_product_reviews",
+            ),
+        ]

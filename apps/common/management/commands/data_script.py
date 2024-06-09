@@ -14,7 +14,6 @@ from apps.shop.models import (
     PRODUCT_IMAGE_PREFIX,
     Category,
     Product,
-    ProductImage,
     Size,
     Colour,
 )
@@ -119,23 +118,16 @@ class CreateData(object):
                         file_path = file_storage.save(
                             f"{PRODUCT_IMAGE_PREFIX}{image_file_name}", image_file
                         )
-                        file_paths_created.append(file_path)
                         product = Product(
                             name=product_data["name"],
                             category=category,
                             desc="This is a good product you'll never regret. It is of good quality",
-                            price_old=idx * 5000,
-                            price_current=idx * 4000,
+                            price_old=(idx + 1) * 5000,
+                            price_current=(idx + 1) * 4000,
+                            image1=file_path
                         )
                         products_to_create.append(product)
                 products_created = Product.objects.bulk_create(products_to_create)
-
-                # Creating Product Images with the file path
-                product_images_to_create = []
-                for product, file_path in zip(products_created, file_paths_created):
-                    product_image = ProductImage(product_id=product.id, image=file_path)
-                    product_images_to_create.append(product_image)
-                ProductImage.objects.bulk_create(product_images_to_create)
 
                 # Product update sizes and colours
                 for product in products_created:
