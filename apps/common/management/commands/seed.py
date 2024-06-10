@@ -20,3 +20,8 @@ PRODUCT_DATA = [
 ]
 SIZES_DATA = ["XS", "S", "M", "L", "XL"]
 COLOUR_DATA = ["Black", "White", "Red", "Blue", "Green"]
+REVIEWS = [
+    "This is a really good product. I've used it several times and it works",
+    "Ensure you buy this. It has great quality",
+    "This Product is really worth the price.",
+]

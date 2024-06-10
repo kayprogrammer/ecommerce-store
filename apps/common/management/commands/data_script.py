@@ -1,3 +1,4 @@
+from typing import List
 from pathlib import Path
 from django.conf import settings
 from django.utils.text import slugify
@@ -6,19 +7,22 @@ from apps.accounts.models import User
 from apps.common.management.commands.seed import (
     PRODUCT_CATEGORIES,
     PRODUCT_DATA,
+    REVIEWS,
     SIZES_DATA,
     COLOUR_DATA,
 )
+from apps.shop.choices import RATING_CHOICES
 from apps.shop.models import (
     CATEGORY_IMAGE_PREFIX,
     PRODUCT_IMAGE_PREFIX,
     Category,
     Product,
+    Review,
     Size,
     Colour,
 )
 from cloudinary_storage.storage import MediaCloudinaryStorage
-import os
+import os, random
 
 CURRENT_DIR = Path(__file__).resolve().parent
 test_images_directory = os.path.join(CURRENT_DIR, "images")
@@ -28,11 +32,12 @@ test_product_images_directory = f"{test_images_directory}/products"
 
 class CreateData(object):
     def __init__(self) -> None:
-        self.create_superuser()
-        self.create_reviewer()
+        admin = self.create_superuser()
+        reviewer = self.create_reviewer()
         self.create_categories()
         sizes, colours = self.create_sizes_and_colours()
-        self.create_products(sizes, colours)
+        products = self.create_products(sizes, colours)
+        self.create_reviews(admin, reviewer, products)
 
     def create_superuser(self) -> User:
         user_dict = {
@@ -98,12 +103,11 @@ class CreateData(object):
         return sizes, colours
 
     def create_products(self, sizes, colours):
-        products_exists = Product.objects.exists()
-        if not products_exists:
+        products = Product.objects.all()
+        if not products.exists():
             with transaction.atomic():
                 images = os.listdir(test_product_images_directory)
                 products_to_create = []
-                file_paths_created = []
                 for idx, product_data in enumerate(PRODUCT_DATA):
                     category_slug = product_data["category_slug"]
                     category = Category.objects.get_or_none(slug=category_slug)
@@ -127,10 +131,29 @@ class CreateData(object):
                             image1=file_path
                         )
                         products_to_create.append(product)
-                products_created = Product.objects.bulk_create(products_to_create)
+                products = Product.objects.bulk_create(products_to_create)
 
                 # Product update sizes and colours
-                for product in products_created:
+                for product in products:
                     product.sizes.set(sizes)
                     product.colours.set(colours)
-        pass
+        return products
+
+    def create_reviews(self, admin: User, reviewer: User, products: List[Product]):
+        reviews_exists = Review.objects.exists()
+        rating_choices = [r[0] for r in RATING_CHOICES]
+        if not reviews_exists:   
+            reviews_to_create = [] 
+            for product in products:
+                rev1 = Review(
+                    product=product, user=admin, 
+                    text=random.choice(REVIEWS),
+                    rating = random.choice(rating_choices)
+                )
+                rev2 = Review(
+                    product=product, user=reviewer, 
+                    text=random.choice(REVIEWS),
+                    rating = random.choice(rating_choices)
+                )
+                reviews_to_create.extend([rev1, rev2])    
+            Review.objects.bulk_create(reviews_to_create)
