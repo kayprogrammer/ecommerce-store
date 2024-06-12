@@ -19,6 +19,10 @@
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
+      <!--Sweet alert-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
+
     <!-- Libraries Stylesheet -->
     <link href="{% static 'css/vendor/animate.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/vendor/owl.carousel.min.css' %}" rel="stylesheet">
@@ -182,11 +186,12 @@
                     <div class="col-md-4 mb-5">
                         <h5 class="text-secondary text-uppercase mb-4">Newsletter</h5>
                         <p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
-                        <form action="">
+                        <form method="POST" action="{% url 'home' %}">
+                            {% csrf_token %}
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Your Email Address">
+                                {{ subscribe_form.email }}
                                 <div class="input-group-append">
-                                    <button class="btn btn-primary">Sign Up</button>
+                                    <button type="submit" class="btn btn-primary">Sign Up</button>
                                 </div>
                             </div>
                         </form>
@@ -230,5 +235,7 @@
     <!-- Template Javascript -->
     <script src="{% static 'js/main.js' %}"></script>
     {% block js %}{% endblock %}
+    {% load sweetify %}
+    {% sweetify %}
 </body>
 </html>

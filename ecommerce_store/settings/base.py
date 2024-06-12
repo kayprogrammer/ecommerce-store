@@ -38,6 +38,7 @@ THIRD_PARTY_APPS = [
     "import_export",
     "whitenoise.runserver_nostatic",
     "mathfilters",
+    "sweetify",
 ]
 
 LOCAL_APPS = [
@@ -49,6 +50,8 @@ LOCAL_APPS = [
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+SWEETIFY_SWEETALERT_LIBRARY = 'sweetalert2'
 
 AUTH_USER_MODEL = "accounts.User"
 
