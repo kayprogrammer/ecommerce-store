@@ -51,13 +51,13 @@ class Product(BaseModel):
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name="products"
     )
-    sizes = models.ManyToManyField(Size, related_name="products")
-    colours = models.ManyToManyField(Colour, related_name="products")
+    sizes = models.ManyToManyField(Size, related_name="products", blank=True)
+    colours = models.ManyToManyField(Colour, related_name="products", blank=True)
 
     # Only 3 images are allowed
     image1 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
-    image2 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
-    image3 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)
+    image2 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX, blank=True)
+    image3 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX, blank=True)
 
     def return_img_url(self, image: ImageFieldFile):
         try: 
