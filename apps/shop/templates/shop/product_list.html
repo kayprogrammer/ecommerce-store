@@ -1,0 +1,63 @@
+{% load mathfilters %}
+{% load custom_tags %}
+{% for product in products %}
+    <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
+        <div class="product-item bg-light mb-4">
+            <div class="product-img position-relative overflow-hidden">
+                <img class="img-fluid w-100" style="height:350px; object-fit:cover;" src="{{ product.image1_url }}" alt="">
+                <div class="product-action">
+                    <a class="btn btn-outline-dark btn-square" href=""><i class="fa fa-eye"></i></a>
+                    <a class="btn btn-outline-dark btn-square" href=""><i class="far fa-heart"></i></a>
+                    <a class="btn btn-outline-dark btn-square" href=""><i class="fa fa-shopping-cart"></i></a>
+                </div>
+            </div>
+            <div class="text-center py-4">
+                <a class="h6 text-decoration-none text-truncate" href="">{{ product.name }}</a>
+                <div class="d-flex align-items-center justify-content-center mt-2">
+                    <h5>${{ product.price_current }}</h5><h6 class="text-muted ml-2"><del>${{ product.price_old }}</del></h6>
+                </div>
+                <div class="d-flex align-items-center justify-content-center mb-1">
+                    {% for i in '12345'|make_list %}
+                        <small class="
+                            {% if forloop.counter > product.avg_rating %}
+                                {% if forloop.counter|sub:product.avg_rating < 1 %}
+                                    fa fa-star-half-alt
+                                {% else %}
+                                    far fa-star
+                                {% endif %}
+                            {% else %}
+                                fa fa-star
+                            {% endif %} text-primary mr-1">
+                        </small>
+                    {% endfor %}
+                    <small>({{ product.reviews_count }})</small>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+<div class="col-12">
+    <nav>
+        {% if is_paginated %}
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><button class="page-link" hx-get="?{% query_transform page=page_obj.previous_page_number %}">Previous</span></button></li>
+            {% else %}
+            <li class="page-item disabled"><button class="page-link" hx-get="#">Previous</span></button></li>
+            {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><button class="page-link" hx-get="?{% query_transform page=num %}">{{ num }}</button></li>
+            {% elif num > page_obj.number|sub:2 and num < page_obj.number|add:2 %}
+                <li class="page-item"><button class="page-link" hx-get="?{% query_transform page=num %}">{{ num }}</button></li>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <li class="page-item"><button class="page-link" hx-get="?{% query_transform page=page_obj.next_page_number %}">Next</span></button></li>
+            {% else %}
+            <li class="page-item disabled"><button class="page-link" hx-get="#">Next</span></button></li>
+            {% endif %}
+        </ul>
+        {% endif %}
+    </nav>
+</div>

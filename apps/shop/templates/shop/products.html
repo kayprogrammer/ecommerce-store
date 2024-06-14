@@ -1,6 +1,5 @@
 {% extends "common/index.html" %}
 {% load static %}
-{% load mathfilters %}
 {% block title %}Shop{% endblock %}
 {% block content %}
     <!-- Breadcrumb Start -->
@@ -23,8 +22,7 @@
         <div class="row px-xl-5">
             <!-- Shop Sidebar Start -->
             <div class="col-lg-3 col-md-4">
-                <form method="POST" action="{% url 'shop' %}">
-                    {% csrf_token %}
+                <form id="product-filter-form" hx-get="{% url 'shop' %}" hx-target="#product-list" hx-trigger="submit">
                     <!-- Color Start -->
                     <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by color</span></h5>
                     <div class="bg-light p-4 mb-30">
@@ -35,8 +33,8 @@
                         </div>
                         {% for color in colors %}
                             <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                                <input type="checkbox" name="color" class="custom-control-input" id="color-{{ color.id }}" value="{{ color.value }}">
-                                <label class="custom-control-label" for="color-{{ color.id }}">{{ color.value }}</label>
+                                <input type="checkbox" name="color" class="custom-control-input" id="color-{{ color.value }}" value="{{ color.value }}">
+                                <label class="custom-control-label" for="color-{{ color.value }}">{{ color.value }}</label>
                                 <span class="badge border font-weight-normal">{{ color.products_count }}</span>
                             </div>
                         {% endfor %}
@@ -53,13 +51,13 @@
                         </div>
                         {% for size in sizes %}
                             <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                                <input type="checkbox" name="size" class="custom-control-input" id="size-{{ size.id }}"  value="{{ size.value }}">
-                                <label class="custom-control-label" for="size-{{ size.id }}">{{ size.value }}</label>
+                                <input type="checkbox" name="size" class="custom-control-input" id="size-{{ size.value }}"  value="{{ size.value }}">
+                                <label class="custom-control-label" for="size-{{ size.value }}">{{ size.value }}</label>
                                 <span class="badge border font-weight-normal">{{ size.products_count }}</span>
                             </div>
                         {% endfor %}
                     </div>
-                    <button class="btn btn-warning" type="submit">Search</button>
+                    <input id="filter-button" class="btn btn-warning" type="submit" value="Search" />
                 </form>
                 <!-- Size End -->
             </div>
@@ -68,72 +66,13 @@
 
             <!-- Shop Product Start -->
             <div class="col-lg-9 col-md-8">
-                <div class="row pb-3">
-                    {% for product in page_obj %}
-                        <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
-                            <div class="product-item bg-light mb-4">
-                                <div class="product-img position-relative overflow-hidden">
-                                    <img class="img-fluid w-100" style="height:350px; object-fit:cover;" src="{{ product.image1_url }}" alt="">
-                                    <div class="product-action">
-                                        <a class="btn btn-outline-dark btn-square" href=""><i class="fa fa-eye"></i></a>
-                                        <a class="btn btn-outline-dark btn-square" href=""><i class="far fa-heart"></i></a>
-                                        <a class="btn btn-outline-dark btn-square" href=""><i class="fa fa-shopping-cart"></i></a>
-                                    </div>
-                                </div>
-                                <div class="text-center py-4">
-                                    <a class="h6 text-decoration-none text-truncate" href="">{{ product.name }}</a>
-                                    <div class="d-flex align-items-center justify-content-center mt-2">
-                                        <h5>${{ product.price_current }}</h5><h6 class="text-muted ml-2"><del>${{ product.price_old }}</del></h6>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-center mb-1">
-                                        {% for i in '12345'|make_list %}
-                                            <small class="
-                                                {% if forloop.counter > product.avg_rating %}
-                                                    {% if forloop.counter|sub:product.avg_rating < 1 %}
-                                                        fa fa-star-half-alt
-                                                    {% else %}
-                                                        far fa-star
-                                                    {% endif %}
-                                                {% else %}
-                                                    fa fa-star
-                                                {% endif %} text-primary mr-1">
-                                            </small>
-                                        {% endfor %}
-                                        <small>({{ product.reviews_count }})</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                    <div class="col-12">
-                        <nav>
-                          {% if is_paginated %}
-                          <ul class="pagination justify-content-center">
-                              {% if page_obj.has_previous %}
-                                <li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}">Previous</span></a></li>
-                              {% else %}
-                                <li class="page-item disabled"><a class="page-link" href="#">Previous</span></a></li>
-                              {% endif %}
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <li class="page-item active"><a class="page-link" href="?page={{num}}">{{ num }}</a></li>
-                                {% elif num > page_obj.number|sub:2 and num < page_obj.number|add:2 %}
-                                    <li class="page-item"><a class="page-link" href="?page={{num}}">{{ num }}</a></li>
-                                {% endif %}
-                            {% endfor %}
-                            {% if page_obj.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}">Next</span></a></li>
-                              {% else %}
-                                <li class="page-item disabled"><a class="page-link" href="#">Next</span></a></li>
-                              {% endif %}
-                          </ul>
-                          {% endif %}
-                        </nav>
-                    </div>
+                <div class="row pb-3" id="product-list" hx-get="{% url 'shop' %}" hx-trigger="load, change from:#product-filter-form" hx-target="#product-list">
+                    {% include 'shop/product_list.html' %}
                 </div>
             </div>
             <!-- Shop Product End -->
         </div>
     </div>
     <!-- Shop End -->
+    {% include 'shop/loader.html' %}
 {% endblock %}
