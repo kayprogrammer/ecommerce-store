@@ -16,7 +16,7 @@ PRODUCT_DATA = [
     {"name": "Black Notepad and Pen with thick cover", "category_slug": "stationery"},
     {"name": "Tesla Model S", "category_slug": "cars"},
     {"name": "Black Ultra HD Camera", "category_slug": "gadgets"},
-    {"name": "Cool Qualtiy Nike Sneakers", "category_slug": "shoes"},
+    {"name": "Cool Quality Nike Sneakers", "category_slug": "shoes"},
 ]
 SIZES_DATA = ["XS", "S", "M", "L", "XL"]
 COLOUR_DATA = ["Black", "White", "Red", "Blue", "Green"]

@@ -10,7 +10,7 @@ def sitedetail(request):
     sitedetail.google_client_id = settings.GOOGLE_CLIENT_ID
     sitedetail.facebook_app_id = settings.FACEBOOK_APP_ID
     return {
-        "sitedetail": sitedetail, 
+        "sitedetail": sitedetail,
         "categories": Category.objects.annotate(products_count=Count("products")).all(),
-        "subscribe_form": SubscribeForm()
+        "subscribe_form": SubscribeForm(),
     }

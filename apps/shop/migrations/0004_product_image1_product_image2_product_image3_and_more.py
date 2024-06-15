@@ -4,31 +4,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('shop', '0003_alter_category_options_alter_colour_value_and_more'),
+        ("shop", "0003_alter_category_options_alter_colour_value_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='image1',
-            field=models.ImageField(default='', upload_to='product_images/'),
+            model_name="product",
+            name="image1",
+            field=models.ImageField(default="", upload_to="product_images/"),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='product',
-            name='image2',
-            field=models.ImageField(default='', upload_to='product_images/'),
+            model_name="product",
+            name="image2",
+            field=models.ImageField(default="", upload_to="product_images/"),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='product',
-            name='image3',
-            field=models.ImageField(default='', upload_to='product_images/'),
+            model_name="product",
+            name="image3",
+            field=models.ImageField(default="", upload_to="product_images/"),
             preserve_default=False,
         ),
         migrations.DeleteModel(
-            name='ProductImage',
+            name="ProductImage",
         ),
     ]

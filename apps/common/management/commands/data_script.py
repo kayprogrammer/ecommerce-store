@@ -128,7 +128,7 @@ class CreateData(object):
                             desc="This is a good product you'll never regret. It is of good quality",
                             price_old=(idx + 1) * 5000,
                             price_current=(idx + 1) * 4000,
-                            image1=file_path
+                            image1=file_path,
                         )
                         products_to_create.append(product)
                 products = Product.objects.bulk_create(products_to_create)
@@ -142,18 +142,20 @@ class CreateData(object):
     def create_reviews(self, admin: User, reviewer: User, products: List[Product]):
         reviews_exists = Review.objects.exists()
         rating_choices = [r[0] for r in RATING_CHOICES]
-        if not reviews_exists:   
-            reviews_to_create = [] 
+        if not reviews_exists:
+            reviews_to_create = []
             for product in products:
                 rev1 = Review(
-                    product=product, user=admin, 
+                    product=product,
+                    user=admin,
                     text=random.choice(REVIEWS),
-                    rating = random.choice(rating_choices)
+                    rating=random.choice(rating_choices),
                 )
                 rev2 = Review(
-                    product=product, user=reviewer, 
+                    product=product,
+                    user=reviewer,
                     text=random.choice(REVIEWS),
-                    rating = random.choice(rating_choices)
+                    rating=random.choice(rating_choices),
                 )
-                reviews_to_create.extend([rev1, rev2])    
+                reviews_to_create.extend([rev1, rev2])
             Review.objects.bulk_create(reviews_to_create)

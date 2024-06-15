@@ -4,14 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('shop', '0004_product_image1_product_image2_product_image3_and_more'),
+        ("shop", "0004_product_image1_product_image2_product_image3_and_more"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='review',
-            constraint=models.UniqueConstraint(fields=('user', 'product'), name='unique_user_product_reviews'),
+            model_name="review",
+            constraint=models.UniqueConstraint(
+                fields=("user", "product"), name="unique_user_product_reviews"
+            ),
         ),
     ]

@@ -3,6 +3,7 @@ import secrets
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
 from autoslug import AutoSlugField
+from django.urls import reverse
 from apps.accounts.models import User
 from apps.common.models import BaseModel
 from apps.shop.choices import (
@@ -38,6 +39,10 @@ class Category(BaseModel):
     def __str__(self):
         return str(self.name)
 
+    @property
+    def get_absolute_url(self):
+        return reverse("category_products", kwargs={"slug": self.slug})
+
     class Meta:
         verbose_name_plural = "Categories"
 
@@ -60,23 +65,28 @@ class Product(BaseModel):
     image3 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX, blank=True)
 
     def return_img_url(self, image: ImageFieldFile):
-        try: 
+        try:
             url = image.url
         except:
             url = None
         return url
-    
+
     @property
     def image1_url(self):
         return self.return_img_url(self.image1)
-    
+
     @property
     def image2_url(self):
         return self.return_img_url(self.image2)
-    
+
     @property
     def image3_url(self):
         return self.return_img_url(self.image3)
+
+    @property
+    def get_absolute_url(self):
+        return reverse("product", kwargs={"slug": self.slug})
+
 
 class ShippingAddress(BaseModel):
     user = models.ForeignKey(
