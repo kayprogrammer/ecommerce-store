@@ -87,6 +87,22 @@ class Product(BaseModel):
     def get_absolute_url(self):
         return reverse("product", kwargs={"slug": self.slug})
 
+class Wishlist(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist", null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="wishlist")
+    guest_id = models.CharField(max_length=200, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "product"],
+                name="unique_user_product_wishlist_item",
+            ),
+            models.UniqueConstraint(
+                fields=["guest_id", "product"],
+                name="unique_guest_id_product_wishlist_item",
+            ),
+        ]
 
 class ShippingAddress(BaseModel):
     user = models.ForeignKey(
