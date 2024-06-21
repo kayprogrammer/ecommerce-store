@@ -37,7 +37,6 @@ THIRD_PARTY_APPS = [
     "debug_toolbar",
     "import_export",
     "whitenoise.runserver_nostatic",
-    "mathfilters",
     "sweetify",
     "django_htmx",
 ]
