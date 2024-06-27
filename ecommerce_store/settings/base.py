@@ -237,9 +237,16 @@ JAZZMIN_SETTINGS = {
         "accounts.user": "fas fa-user-cog",
         "general.sitedetail": "fas fa-info-circle",
         "general.subscriber": "fas fa-users",
+        "general.message": "fas fa-comments",
         "shop.review": "fas fa-thumbs-up",
         "shop.category": "fas fa-list",
         "shop.product": "fas fa-list-alt",
+        "shop.colour": "fas fa-paint-brush",
+        "shop.size": "far fa-circle",
+        "shop.shippingaddress": "fas fa-map-marker",
+        "shop.orderitem": "fas fa-shopping-cart",
+        "shop.order": "fas fa-money-bill",
+
         "sites.site": "fas fa-globe",
     },
     # Icons that are used when one is not manually specified

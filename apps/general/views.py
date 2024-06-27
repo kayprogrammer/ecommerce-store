@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
-from apps.general.forms import SubscribeForm
-from apps.general.models import Subscriber
+from apps.general.forms import SubscribeForm, MessageForm
+from apps.general.models import Subscriber, Message
 from apps.shop.models import Product
 import sweetify
 
@@ -28,3 +28,24 @@ class HomeView(View):
                 timer=3000,
             )
         return redirect(request.META.get("HTTP_REFERER"))
+
+class ContactView(View):
+    def get(self, request):
+        form = MessageForm()
+        return render(request, "general/contact.html", context={"form": form})
+
+    def post(self, request):
+        print("Haaa")
+        # Subscribe to newsletter
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            Message.objects.create(**form.cleaned_data)
+            sweetify.success(
+                request,
+                title="Success",
+                text="Message sent successfully",
+                button="OK",
+                timer=3000,
+            )
+            return redirect("/contact/")
+        return render(request, "general/contact.html", context={"form": form})
