@@ -6,7 +6,7 @@
                 <img class="img-fluid w-100" style="height:350px; object-fit:cover;" src="{{ product.image1_url }}" alt="">
                 <div class="product-action">
                     <a class="btn btn-outline-dark btn-square" href="{{ product.get_absolute_url }}"><i class="fa fa-eye"></i></a>
-                    <a class="btn btn-outline-dark btn-square" href=""><i class="{{ product.id|wishlist_state:request }}"></i></a>
+                    <span hx-get="{% url 'toggle-wishlist' product.slug %}{% if is_wishlist_page %}?wishlist-page=true{% endif %}" hx-target="this" hx-trigger="click" hx-swap="none" data-wishlist-toggle="true" class="btn btn-outline-dark btn-square"><i class="{{ product.id|wishlist_state:request }}"></i></span>
                     <a class="btn btn-outline-dark btn-square" href=""><i class="fa fa-shopping-cart"></i></a>
                 </div>
             </div>

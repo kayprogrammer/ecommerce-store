@@ -33,7 +33,10 @@
 
 <script>
     document.body.addEventListener('htmx:configRequest', function(evt) {
-        document.getElementById('backdrop').style.display = 'flex';
+        // Check if the request is not a wishlist toggle request
+        if (!event.detail.elt.hasAttribute('data-wishlist-toggle')) {
+            document.getElementById('backdrop').style.display = 'flex';
+        }
     });
 
     document.body.addEventListener('htmx:afterRequest', function(evt) {

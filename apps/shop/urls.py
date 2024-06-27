@@ -2,12 +2,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("shop/", views.ProductsView.as_view(), name="products"),
-    path("shop/products/<slug:slug>/", views.ProductView.as_view(), name="product"),
+    path("", views.ProductsView.as_view(), name="products"),
+    path("products/<slug:slug>/", views.ProductView.as_view(), name="product"),
     path(
-        "shop/categories/<slug:slug>/",
+        "categories/<slug:slug>/",
         views.ProductsByCategoryView.as_view(),
         name="category_products",
     ),
-    path("shop/wishlist", views.WishlistView.as_view(), name="wishlist"),
+    path("wishlist", views.WishlistView.as_view(), name="wishlist"),
+    path("toggle-wishlist/<slug:slug>/", views.ToggleWishlist.as_view(), name="toggle-wishlist"),
 ]

@@ -122,9 +122,12 @@
                     </button>
                     <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                         <div class="navbar-nav mr-auto py-0">
-                            <a href="/" class="nav-item nav-link active">Home</a>
-                            <a href="{% url 'products' %}" class="nav-item nav-link">Shop</a>
-                            <a href="{% url 'wishlist' %}" class="nav-item nav-link">Wishlist</a>
+                            {% url 'home' as home_url %}
+                            <a href="/" class="nav-item nav-link {% if request.path == home_url %}active{% endif %}">Home</a>
+                            {% url 'products' as products_url %}
+                            <a href="{% url 'products' %}" class="nav-item nav-link {% if request.path == products_url %}active{% endif %}">Shop</a>
+                            {% url 'wishlist' as wishlist_url %}
+                            <a href="{% url 'wishlist' %}" class="nav-item nav-link {% if request.path == wishlist_url %}active{% endif %}">Wishlist</a>
                             <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages <i class="fa fa-angle-down mt-1"></i></a>
                                 <div class="dropdown-menu bg-primary rounded-0 border-0 m-0">
@@ -135,9 +138,9 @@
                             <a href="contact.html" class="nav-item nav-link">Contact</a>
                         </div>
                         <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
-                            <a href="" class="btn px-0">
+                            <a href="{% url 'wishlist' %}" class="btn px-0">
                                 <i class="fas fa-heart text-primary"></i>
-                                <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                                <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">{{ wishlist_count }}</span>
                             </a>
                             <a href="" class="btn px-0 ml-3">
                                 <i class="fas fa-shopping-cart text-primary"></i>
@@ -237,6 +240,24 @@
 
     <!-- Template Javascript -->
     <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        document.addEventListener('htmx:afterSwap', (event) => {
+            if (event.detail.xhr && event.detail.xhr.response) {
+                const response = JSON.parse(event.detail.xhr.response);
+                const target = event.target;
+                const iconElement = target.querySelector('i');
+    
+                if (response.remove) {
+                    // Reload the #product-list container
+                    target.parentElement.parentElement.parentElement.parentElement.remove()
+                } else if (response.created === true) {
+                    iconElement.className = 'fas fa-heart';
+                } else {
+                    iconElement.className = 'far fa-heart';
+                }
+            }
+        });
+    </script>
     {% block js %}{% endblock %}
     {% load sweetify %}
     {% sweetify %}
