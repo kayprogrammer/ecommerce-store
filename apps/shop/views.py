@@ -3,7 +3,7 @@ from django.views import View
 from django.views.generic import ListView
 from django.shortcuts import get_object_or_404, render
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
-from apps.shop.models import Category, OrderItem, Product, Wishlist
+from apps.shop.models import Category, Order, OrderItem, Product, Wishlist
 
 from apps.shop.utils import colour_size_filter_products, generic_products_ctx, get_user_or_guest_id
 
@@ -111,4 +111,11 @@ class CartView(View):
         orderitems = OrderItem.objects.filter(user=user, guest_id=guest_id, order=None).select_related("product")
         context={"orderitems": orderitems}
         return render(request, "shop/cart.html", context=context)
+    
+class CheckoutView(View):
+    def get(self, request, *args, **kwargs):
+        # user = request.user
+        # order = Order.objects.get(user=user, tx_ref=kwargs["tx_ref"])
+        context={"order": "order"}
+        return render(request, "shop/checkout.html", context=context)
     
