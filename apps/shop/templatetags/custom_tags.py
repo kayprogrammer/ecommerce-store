@@ -17,10 +17,7 @@ def query_transform(context, **kwargs):
 def wishlist_state(product_id, request):
     user, guest_id = get_user_or_guest_id(request)
     wishlist_exists = False
-    if user:
-        wishlist_exists = Wishlist.objects.filter(user=user, product_id=product_id).exists()
-    else:
-        wishlist_exists = Wishlist.objects.filter(guest_id=guest_id, product_id=product_id).exists()
+    wishlist_exists = Wishlist.objects.filter(user=user, guest_id=guest_id, product_id=product_id).exists()
     return "fas fa-heart" if wishlist_exists else "far fa-heart"
 
 @register.filter

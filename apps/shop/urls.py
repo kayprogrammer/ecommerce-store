@@ -11,4 +11,5 @@ urlpatterns = [
     ),
     path("wishlist", views.WishlistView.as_view(), name="wishlist"),
     path("toggle-wishlist/<slug:slug>/", views.ToggleWishlist.as_view(), name="toggle-wishlist"),
+    path("cart/", views.CartView.as_view(), name="cart"),
 ]

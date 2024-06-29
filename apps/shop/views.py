@@ -3,7 +3,7 @@ from django.views import View
 from django.views.generic import ListView
 from django.shortcuts import get_object_or_404, render
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
-from apps.shop.models import Category, Product, Wishlist
+from apps.shop.models import Category, OrderItem, Product, Wishlist
 
 from apps.shop.utils import colour_size_filter_products, generic_products_ctx, get_user_or_guest_id
 
@@ -53,11 +53,7 @@ class ProductView(View):
 class WishlistView(ListView):
     def get(self, request):
         user, guest_id = get_user_or_guest_id(self.request)
-        products_original = Product.objects.annotate(**REVIEWS_AND_RATING_ANNOTATION).order_by("-created_at")                                        
-        products = products_original.filter(wishlist__user=user)
-        if guest_id:
-            products = products_original.filter(wishlist__guest_id=guest_id)
-        
+        products = Product.objects.filter(wishlist__user=user, wishlist__guest_id=guest_id).annotate(**REVIEWS_AND_RATING_ANNOTATION).order_by("-created_at")                                        
         template = "shop/products.html"
         if request.htmx:
             template = "shop/product_list.html"
@@ -75,10 +71,7 @@ class ToggleWishlist(View):
         product = get_object_or_404(Product, slug=kwargs["slug"])
         user, guest_id = get_user_or_guest_id(request)
         wishlist, created = None, None
-        if user:
-            wishlist, created = Wishlist.objects.get_or_create(user=user, product=product)
-        else:
-            wishlist, created = Wishlist.objects.get_or_create(guest_id=guest_id, product=product)
+        wishlist, created = Wishlist.objects.get_or_create(user=user, guest_id=guest_id, product=product)
         if not created:
             wishlist.delete()
         response_data = {"created": created}
@@ -111,3 +104,11 @@ class ProductsByCategoryView(ListView):
         if self.request.htmx:
             self.template_name = "shop/product_list.html"
         return context
+
+class CartView(View):
+    def get(self, request):
+        user, guest_id = get_user_or_guest_id(self.request)
+        orderitems = OrderItem.objects.filter(user=user, guest_id=guest_id, order=None).select_related("product")
+        context={"orderitems": orderitems}
+        return render(request, "shop/cart.html", context=context)
+    
