@@ -34,7 +34,7 @@
 <script>
     document.body.addEventListener('htmx:configRequest', function(evt) {
         // Check if the request is not a wishlist toggle request
-        if (!event.detail.elt.hasAttribute('data-wishlist-toggle')) {
+        if (event.detail.elt.getAttribute('data-action') !== "cart" && event.detail.elt.getAttribute('data-action') !== "wishlist" ) {
             document.getElementById('backdrop').style.display = 'flex';
         }
     });
