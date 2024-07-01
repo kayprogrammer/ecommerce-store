@@ -242,20 +242,29 @@
                 const target = event.target;
                 const iconElement = target.querySelector('i');
                 const action = target.getAttribute('data-action');
-    
+                const page = target.getAttribute('data-page');
+                const baseParent = target.parentElement.parentElement.parentElement.parentElement
+                
                 if (response.remove) {
-                    // Reload the #product-list container
-                    target.parentElement.parentElement.parentElement.parentElement.remove()
+                    baseParent.remove()
                 } else if (response.created === true) {
-                    iconElement.className = 'fas fa-heart';
-                    if (action === "cart") {
-                        iconElement.className = 'fas fa-shopping-cart';
+                    if (page !== 'cart') {
+                        iconElement.className = 'fas fa-heart';
+                        if (action === "cart") {
+                            iconElement.className = 'fas fa-shopping-cart';
+                        }
                     }
                 } else {
-                    iconElement.className = 'far fa-heart';
-                    if (action === "cart") {
-                        iconElement.className = 'fas fa-cart-plus';
+                    if (page !== 'cart') {
+                        iconElement.className = 'far fa-heart';
+                        if (action === "cart") {
+                            iconElement.className = 'fas fa-cart-plus';
+                        }
                     }
+                }
+                if (page === 'cart') {
+                    const baseParentId = `#orderitem-${response.orderitem_id}`
+                    $(baseParentId).load(location.href + " " + baseParentId ); 
                 }
             }
         });

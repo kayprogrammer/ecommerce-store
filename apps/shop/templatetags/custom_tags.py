@@ -23,7 +23,6 @@ def wishlist_state(product_id, request):
 def is_in_cart(product_id, request):
     user, guest_id = get_user_or_guest_id(request)
     orderitem_exists = OrderItem.objects.filter(user=user, guest_id=guest_id, product_id=product_id).exists()
-    # element_to_return = `<span hx-get="{% url 'toggle-cart' product.slug %}?quantity={}" hx-target="this" hx-swap="none" class="btn btn-outline-dark btn-square"><i class="{{ product.id|cart_state:request }}"></i></span>`
     return orderitem_exists
 
 

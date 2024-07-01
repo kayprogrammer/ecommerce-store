@@ -116,14 +116,17 @@ class ToggleCartView(View):
     def get(self, request, *args, **kwargs):
         user, guest_id = get_user_or_guest_id(request)
         quantity = int(request.GET.get("quantity", 1))
+        page = request.GET.get("query_page") # For cart page
         # If quantity is 0, then we delete item from cart
         product = get_object_or_404(Product, slug=kwargs["slug"])
         orderitem, created = OrderItem.objects.get_or_create(user=user, guest_id=guest_id, order=None, product=product)
-        response_data = {"created": True}
+        response_data = {"created": True, "orderitem_id": orderitem.id}
         if not created:
             if quantity < 1:
                 orderitem.delete()  
                 response_data['created'] = False
+                if page == "cart":
+                    response_data["remove"] = True
             else:
                 orderitem.quantity = quantity
                 orderitem.save()
