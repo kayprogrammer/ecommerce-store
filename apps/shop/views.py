@@ -120,7 +120,7 @@ class ToggleCartView(View):
         # If quantity is 0, then we delete item from cart
         product = get_object_or_404(Product, slug=kwargs["slug"])
         orderitem, created = OrderItem.objects.get_or_create(user=user, guest_id=guest_id, order=None, product=product)
-        response_data = {"created": True, "orderitem_id": orderitem.id}
+        response_data = {"created": True, "item_id": orderitem.id, "quantity": quantity}
         if not created:
             if quantity < 1:
                 orderitem.delete()  
@@ -130,6 +130,8 @@ class ToggleCartView(View):
             else:
                 orderitem.quantity = quantity
                 orderitem.save()
+        response_data["orderitem_total"] = orderitem.get_total
+        print(response_data)
         return JsonResponse(response_data)
     
 class CheckoutView(View):

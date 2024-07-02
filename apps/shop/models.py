@@ -58,6 +58,7 @@ class Product(BaseModel):
     )
     sizes = models.ManyToManyField(Size, related_name="products", blank=True)
     colours = models.ManyToManyField(Colour, related_name="products", blank=True)
+    in_stock = models.IntegerField(default=5)
 
     # Only 3 images are allowed
     image1 = models.ImageField(upload_to=PRODUCT_IMAGE_PREFIX)

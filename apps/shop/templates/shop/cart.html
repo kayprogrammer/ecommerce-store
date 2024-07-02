@@ -39,19 +39,19 @@
                                 <td class="align-middle">
                                     <div class="input-group quantity mx-auto" style="width: 100px;">
                                         <div class="input-group-btn">
-                                            <button data-page="cart" data-action="cart" hx-get="{% url 'toggle-cart' orderitem.product.slug %}" hx-vals='{"query_page": "cart", "quantity": {{ orderitem.quantity|add:"-1" }}}' hx-swap="none" class="btn btn-sm btn-primary btn-minus" >
+                                            <button data-page="cart" data-action="cart" data-cart-action="reduce" hx-get="{% url 'toggle-cart' orderitem.product.slug %}" hx-vals='{"query_page": "cart", "quantity": {{ orderitem.quantity|add:"-1" }}}' hx-swap="none" class="btn btn-sm btn-primary btn-minus" >
                                             <i class="fa fa-minus"></i>
                                             </button>
                                         </div>
-                                        <input type="text" class="form-control form-control-sm bg-secondary border-0 text-center" disabled value="{{ orderitem.quantity }}">
+                                        <span id="quantity-{{orderitem.id}}" type="text" class="form-control form-control-sm bg-secondary border-0 text-center">{{ orderitem.quantity }}</span>
                                         <div class="input-group-btn">
-                                            <button data-page="cart" data-action="cart" class="btn btn-sm btn-primary btn-plus" hx-get="{% url 'toggle-cart' orderitem.product.slug %}" hx-vals='{"quantity": {{ orderitem.quantity|add:"1" }}}' hx-swap="none">
+                                            <button data-page="cart" data-action="cart" data-cart-action="add" class="btn btn-sm btn-primary btn-plus" hx-get="{% url 'toggle-cart' orderitem.product.slug %}" hx-vals='{"quantity": {{ orderitem.quantity|add:"1" }}}' hx-swap="none">
                                                 <i class="fa fa-plus"></i>
                                             </button>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="align-middle">${{ orderitem.get_total }}</td>
+                                <td class="align-middle" id="total-{{orderitem.id}}">${{ orderitem.get_total }}</td>
                                 <td class="align-middle"><span><span><button data-page="cart" data-action="cart" hx-get="{% url 'toggle-cart' orderitem.product.slug %}" hx-vals='{"query_page": "cart", "quantity": 0}' hx-swap="none" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button></span></span></td>
                             </tr>
                         {% endfor %}

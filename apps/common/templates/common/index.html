@@ -236,37 +236,37 @@
     <script src="{% static 'js/main.js' %}"></script>
     <script>
         document.addEventListener('htmx:afterSwap', (event) => {
-            $("#cart-wishlist").load(location.href + " #cart-wishlist" ); 
             if (event.detail.xhr && event.detail.xhr.response) {
                 const response = JSON.parse(event.detail.xhr.response);
                 const target = event.target;
                 const iconElement = target.querySelector('i');
                 const action = target.getAttribute('data-action');
                 const page = target.getAttribute('data-page');
-                const baseParent = target.parentElement.parentElement.parentElement.parentElement
-                
+                const baseParent = target.closest(".product-item-row") || target.closest("tr")
                 if (response.remove) {
                     baseParent.remove()
                 } else if (response.created === true) {
                     if (page !== 'cart') {
                         iconElement.className = 'fas fa-heart';
-                        if (action === "cart") {
-                            iconElement.className = 'fas fa-shopping-cart';
-                        }
+                        if (action === "cart") iconElement.className = 'fas fa-shopping-cart';
                     }
                 } else {
                     if (page !== 'cart') {
                         iconElement.className = 'far fa-heart';
-                        if (action === "cart") {
-                            iconElement.className = 'fas fa-cart-plus';
-                        }
+                        if (action === "cart") iconElement.className = 'fas fa-cart-plus';
                     }
                 }
                 if (page === 'cart') {
-                    const baseParentId = `#orderitem-${response.orderitem_id}`
-                    $(baseParentId).load(location.href + " " + baseParentId ); 
+                    const cartAction = target.getAttribute('data-cart-action');
+                    const totalElem = baseParent.querySelector(`#total-${response.item_id}`);
+                    const quantityElem = baseParent.querySelector(`#quantity-${response.item_id}`);
+                    totalElem.innerHTML = `$${response.orderitem_total}`
+                    quantityElem.innerHTML = response.quantity
+                    target.setAttribute('hx-vals', JSON.stringify({ quantity: response.quantity + 1 }));
+                    if (cartAction === "reduce") target.setAttribute('hx-vals', JSON.stringify({ query_page: "cart", quantity: response.quantity - 1 })); 
                 }
             }
+            $("#cart-wishlist").load(location.href + " #cart-wishlist" ); 
         });
     </script>
     {% block js %}{% endblock %}
