@@ -12,7 +12,7 @@ def sitedetail(request):
     sitedetail.facebook_app_id = settings.FACEBOOK_APP_ID
     user, guest_id = get_user_or_guest_id(request)
     wishlist_count = Wishlist.objects.filter(user=user, guest_id=guest_id).count()
-    orderitem_count = OrderItem.objects.filter(user=user, guest_id=guest_id).count()
+    orderitem_count = OrderItem.objects.filter(user=user, guest_id=guest_id, order=None).count()
 
     return {
         "sitedetail": sitedetail,

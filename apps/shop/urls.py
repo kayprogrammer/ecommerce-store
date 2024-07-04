@@ -13,5 +13,5 @@ urlpatterns = [
     path("toggle-wishlist/<slug:slug>/", views.ToggleWishlist.as_view(), name="toggle-wishlist"),
     path("cart/", views.CartView.as_view(), name="cart"),
     path("toggle-cart/<slug:slug>/", views.ToggleCartView.as_view(), name="toggle-cart"),
-    path("checkout/", views.CheckoutView.as_view(), name="checkout"),
+    path("checkout/<str:tx_ref>/", views.CheckoutView.as_view(), name="checkout"),
 ]

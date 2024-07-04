@@ -1,13 +1,18 @@
 from django.http import Http404, JsonResponse
+from django.urls import reverse
 from django.views import View
 from django.views.generic import ListView
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from apps.accounts.mixins import LoginRequiredMixin
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
-from apps.shop.models import Category, Order, OrderItem, Product, Wishlist
+from apps.shop.models import Category, Coupon, Order, OrderItem, Product, ShippingAddress, Wishlist
 
 from apps.shop.utils import colour_size_filter_products, generic_products_ctx, get_user_or_guest_id
+import sweetify
 
-PRODUCTS_PER_PAGE = 3
+PRODUCTS_PER_PAGE = 15
 
 class ProductsView(ListView):
     model = Product
@@ -112,6 +117,24 @@ class CartView(View):
         context={"orderitems": orderitems}
         return render(request, "shop/cart.html", context=context)
 
+    @method_decorator(login_required, name='dispatch')
+    def post(self, request):
+        # Proceed to checkout
+        user=request.user
+        coupon_code = request.POST.get("coupon")
+        coupon = None
+        if coupon_code:
+            coupon = Coupon.objects.get_or_none(code=coupon_code, expired=False)
+            if not coupon:
+                sweetify.error(request, title="Error", text="Coupon is invalid/expired", button="OK", timer=3000)
+                return redirect(reverse("cart"))
+            if Order.objects.filter(user=user, coupon=coupon).exists():
+                sweetify.error(request, title="Error", text="You've used this coupon already", button="OK", timer=3000)
+                return redirect(reverse("cart"))
+        order = Order.objects.create(user=user)
+        OrderItem.objects.filter(user=user, order=None).update(order=order)        
+        return redirect(reverse("checkout", kwargs={"tx_ref": order.tx_ref}))
+    
 class ToggleCartView(View):
     def get(self, request, *args, **kwargs):
         user, guest_id = get_user_or_guest_id(request)
@@ -134,10 +157,11 @@ class ToggleCartView(View):
         print(response_data)
         return JsonResponse(response_data)
     
-class CheckoutView(View):
+class CheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        # user = request.user
-        # order = Order.objects.get(user=user, tx_ref=kwargs["tx_ref"])
-        context={"order": "order"}
+        user = request.user
+        order = Order.objects.get(user=user, tx_ref=kwargs["tx_ref"])
+        shipping_addresses = ShippingAddress.objects.filter(user=user)
+        context={"order": order, "shipping_addresses": shipping_addresses}
         return render(request, "shop/checkout.html", context=context)
     

@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from django.db import models
 from django.utils import timezone
@@ -26,6 +27,15 @@ class BaseModel(models.Model):
                 url = None
         return url
 
+
+def generate_unique_code(model: BaseModel, field):
+    allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
+    unique_code = "".join(secrets.choice(allowed_chars) for i in range(12))
+    code = unique_code
+    similar_coupon = model.objects.filter(**{field: code}).exists()
+    if not similar_coupon:
+        return code
+    generate_unique_code()
 
 def image_folder_to_upload(subfolder=""):
     folder = f"ecommerce-store/{subfolder}/"

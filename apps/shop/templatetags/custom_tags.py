@@ -22,7 +22,7 @@ def wishlist_state(product_id, request):
 @register.filter
 def is_in_cart(product_id, request):
     user, guest_id = get_user_or_guest_id(request)
-    orderitem_exists = OrderItem.objects.filter(user=user, guest_id=guest_id, product_id=product_id).exists()
+    orderitem_exists = OrderItem.objects.filter(user=user, guest_id=guest_id, product_id=product_id, order=None).exists()
     return orderitem_exists
 
 

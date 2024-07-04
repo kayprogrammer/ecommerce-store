@@ -1,17 +1,14 @@
-from distutils.command import upload
-import secrets
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
 from autoslug import AutoSlugField
 from django.urls import reverse
 from apps.accounts.models import User
-from apps.common.models import BaseModel
+from apps.common.models import BaseModel, generate_unique_code
 from apps.shop.choices import (
     DELIVERY_STATUS_CHOICES,
     PAYMENT_STATUS_CHOICES,
     RATING_CHOICES,
 )
-from django.utils import timezone
 
 CATEGORY_IMAGE_PREFIX = "category_images/"
 PRODUCT_IMAGE_PREFIX = "product_images/"
@@ -121,11 +118,18 @@ class ShippingAddress(BaseModel):
     def __str__(self):
         return f"{self.full_name}'s shipping details"
 
+class Coupon(BaseModel):
+    code = models.CharField(max_length=12, blank=True, unique=True)
+    expired = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs) -> None:
+        if self._state.adding:
+            self.code = generate_unique_code(Coupon, "code")
+        super().save(*args, **kwargs)
 
 class Order(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
     tx_ref = models.CharField(max_length=100, blank=True, unique=True)
-    date_ordered = models.DateTimeField(default=timezone.now)
     delivery_status = models.CharField(
         max_length=20, default="PENDING", choices=DELIVERY_STATUS_CHOICES
     )
@@ -133,7 +137,10 @@ class Order(BaseModel):
         max_length=20, default="PENDING", choices=PAYMENT_STATUS_CHOICES
     )
     shipping_address = models.ForeignKey(
-        ShippingAddress, on_delete=models.CASCADE, blank=True, null=True
+        ShippingAddress, on_delete=models.SET_NULL, blank=True, null=True
+    )
+    coupon = models.ForeignKey(
+        Coupon, on_delete=models.SET_NULL, blank=True, null=True
     )
     date_delivered = models.DateTimeField(null=True, blank=True)
 
@@ -141,13 +148,8 @@ class Order(BaseModel):
         return f"{self.user.full_name}'s order"
 
     def save(self, *args, **kwargs) -> None:
-        while not self.tx_ref:
-            allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
-            unique_code = "".join(secrets.choice(allowed_chars) for i in range(10))
-            tx_ref = unique_code
-            similar_obj_tx_ref = Order.objects.filter(tx_ref=tx_ref).exists()
-            if not similar_obj_tx_ref:
-                self.tx_ref = tx_ref
+        if self._state.adding:
+            self.tx_ref = generate_unique_code(Order, "tx_ref")
         super().save(*args, **kwargs)
 
     @property

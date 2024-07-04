@@ -41,3 +41,4 @@ def get_user_or_guest_id(request):
     if not session_key:
         request.session.save()
     return None, request.session.session_key
+        
