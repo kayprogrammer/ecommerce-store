@@ -85,9 +85,14 @@ class Product(BaseModel):
     def get_absolute_url(self):
         return reverse("product", kwargs={"slug": self.slug})
 
+
 class Wishlist(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist", null=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="wishlist")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="wishlist", null=True
+    )
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="wishlist"
+    )
     guest_id = models.CharField(max_length=200, null=True)
 
     class Meta:
@@ -102,6 +107,20 @@ class Wishlist(BaseModel):
             ),
         ]
 
+
+class Country(BaseModel):
+    name = models.CharField(max_length=200, unique=True)
+    code = models.CharField(max_length=20, unique=True)
+    phone_code = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "Countries"
+
+
 class ShippingAddress(BaseModel):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="shipping_addresses"
@@ -112,11 +131,12 @@ class ShippingAddress(BaseModel):
     address = models.CharField(max_length=1000, null=True)
     city = models.CharField(max_length=200, null=True)
     state = models.CharField(max_length=200, null=True)
-    country = models.CharField(max_length=200, null=True)
+    country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True)
     zipcode = models.IntegerField(null=True)
 
     def __str__(self):
         return f"{self.full_name}'s shipping details"
+
 
 class Coupon(BaseModel):
     code = models.CharField(max_length=12, blank=True, unique=True)
@@ -126,6 +146,7 @@ class Coupon(BaseModel):
         if self._state.adding:
             self.code = generate_unique_code(Coupon, "code")
         super().save(*args, **kwargs)
+
 
 class Order(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
@@ -139,9 +160,7 @@ class Order(BaseModel):
     shipping_address = models.ForeignKey(
         ShippingAddress, on_delete=models.SET_NULL, blank=True, null=True
     )
-    coupon = models.ForeignKey(
-        Coupon, on_delete=models.SET_NULL, blank=True, null=True
-    )
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, blank=True, null=True)
     date_delivered = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):

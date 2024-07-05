@@ -33,6 +33,7 @@ def colour_size_filter_products(products_original, sizes, colours):
         products = sized_products | coloured_products
     return products.distinct()
 
+
 def get_user_or_guest_id(request):
     user = request.user
     if user.is_authenticated:
@@ -41,4 +42,3 @@ def get_user_or_guest_id(request):
     if not session_key:
         request.session.save()
     return None, request.session.session_key
-        

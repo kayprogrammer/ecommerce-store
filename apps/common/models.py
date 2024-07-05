@@ -37,6 +37,7 @@ def generate_unique_code(model: BaseModel, field):
         return code
     generate_unique_code()
 
+
 def image_folder_to_upload(subfolder=""):
     folder = f"ecommerce-store/{subfolder}/"
     if subfolder == "":

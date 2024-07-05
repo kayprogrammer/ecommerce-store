@@ -5,6 +5,7 @@ from django.utils.text import slugify
 from django.db import transaction
 from apps.accounts.models import User
 from apps.common.management.commands.seed import (
+    COUNTRIES_DATA,
     PRODUCT_CATEGORIES,
     PRODUCT_DATA,
     REVIEWS,
@@ -16,6 +17,7 @@ from apps.shop.models import (
     CATEGORY_IMAGE_PREFIX,
     PRODUCT_IMAGE_PREFIX,
     Category,
+    Country,
     Product,
     Review,
     Size,
@@ -34,6 +36,7 @@ class CreateData(object):
     def __init__(self) -> None:
         admin = self.create_superuser()
         reviewer = self.create_reviewer()
+        self.create_countries()
         self.create_categories()
         sizes, colours = self.create_sizes_and_colours()
         products = self.create_products(sizes, colours)
@@ -64,6 +67,19 @@ class CreateData(object):
         if not reviewer:
             reviewer = User.objects.create_user(**user_dict)
         return reviewer
+
+    def create_countries(self):
+        if Country.objects.exists():
+            return
+        country_instances = [
+            Country(
+                name=country["name"],
+                code=country["code"],
+                phone_code=country["phone_code"],
+            )
+            for country in COUNTRIES_DATA
+        ]
+        Country.objects.bulk_create(country_instances)
 
     def get_image(self, images_list, substring):
         return next((s for s in images_list if s.startswith(substring)), None)

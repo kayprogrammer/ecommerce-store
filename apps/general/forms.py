@@ -8,6 +8,7 @@ class SubscribeForm(forms.Form):
         )
     )
 
+
 class MessageForm(forms.Form):
     name = forms.CharField(
         widget=forms.TextInput(

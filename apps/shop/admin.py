@@ -8,6 +8,7 @@ from apps.shop.models import (
     Product,
     Review,
     ShippingAddress,
+    Country,
     Size,
 )
 
@@ -32,6 +33,11 @@ class ProductAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+    list_filter = list_display
+
+
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ("name", "code", "phone_code")
     list_filter = list_display
 
 
@@ -67,6 +73,7 @@ admin.site.register(Size, SizeAdmin)
 admin.site.register(Colour, SizeAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Country, CountryAdmin)
 admin.site.register(ShippingAddress, ShippingAddressAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(Order, OrderAdmin)

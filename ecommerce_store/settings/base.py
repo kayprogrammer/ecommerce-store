@@ -244,9 +244,9 @@ JAZZMIN_SETTINGS = {
         "shop.colour": "fas fa-paint-brush",
         "shop.size": "far fa-circle",
         "shop.shippingaddress": "fas fa-map-marker",
+        "shop.country": "fas fa-flag",
         "shop.orderitem": "fas fa-shopping-cart",
         "shop.order": "fas fa-money-bill",
-
         "sites.site": "fas fa-globe",
     },
     # Icons that are used when one is not manually specified

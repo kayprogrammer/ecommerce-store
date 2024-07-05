@@ -29,6 +29,7 @@ class HomeView(View):
             )
         return redirect(request.META.get("HTTP_REFERER"))
 
+
 class ContactView(View):
     def get(self, request):
         form = MessageForm()
