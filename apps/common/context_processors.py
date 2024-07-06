@@ -11,6 +11,8 @@ def sitedetail(request):
     sitedetail, _ = SiteDetail.objects.get_or_create()
     sitedetail.google_client_id = settings.GOOGLE_CLIENT_ID
     sitedetail.facebook_app_id = settings.FACEBOOK_APP_ID
+    sitedetail.shipping_fee = settings.SHIPPING_FEE
+
     user, guest_id = get_user_or_guest_id(request)
     wishlist_count = Wishlist.objects.filter(user=user, guest_id=guest_id).count()
     orderitem_count = OrderItem.objects.filter(

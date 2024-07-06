@@ -5,6 +5,7 @@ from django.views.generic import ListView
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from apps.accounts.mixins import LoginRequiredMixin
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
 from apps.shop.models import (
@@ -141,7 +142,15 @@ class CartView(View):
         orderitems = OrderItem.objects.filter(
             user=user, guest_id=guest_id, order=None
         ).select_related("product")
-        context = {"orderitems": orderitems}
+        cart_subtotal = sum([orderitem.get_total for orderitem in orderitems])
+        shipping_fee = settings.SHIPPING_FEE * orderitems.count()
+        cart_total = cart_subtotal + shipping_fee
+        context = {
+            "orderitems": orderitems,
+            "cart_subtotal": cart_subtotal,
+            "shipping_fee": shipping_fee,
+            "cart_total": cart_total,
+        }
         return render(request, "shop/cart.html", context=context)
 
     @method_decorator(login_required, name="dispatch")
@@ -196,7 +205,6 @@ class ToggleCartView(View):
                 orderitem.quantity = quantity
                 orderitem.save()
         response_data["orderitem_total"] = orderitem.get_total
-        print(response_data)
         return JsonResponse(response_data)
 
 

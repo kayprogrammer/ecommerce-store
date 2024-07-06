@@ -264,6 +264,7 @@
                     quantityElem.innerHTML = response.quantity
                     target.setAttribute('hx-vals', JSON.stringify({ quantity: response.quantity + 1 }));
                     if (cartAction === "reduce") target.setAttribute('hx-vals', JSON.stringify({ query_page: "cart", quantity: response.quantity - 1 })); 
+                    $("#cart-summary").load(" #cart-summary > *" ); 
                 }
             }
             $("#cart-wishlist").load(location.href + " #cart-wishlist" ); 
