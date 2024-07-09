@@ -9,9 +9,9 @@
                     <span hx-get="{% url 'toggle-wishlist' product.slug %}{% if is_wishlist_page %}?wishlist-page=true{% endif %}" hx-target="this" hx-trigger="click" hx-swap="none" data-action="wishlist" class="btn btn-outline-dark btn-square"><i class="{{ product.id|wishlist_state:request }}"></i></span>
                     {% with is_in_cart=product.id|is_in_cart:request %}
                         {% if is_in_cart %}
-                            <span data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}?quantity=0" hx-target="this" hx-swap="none" class="btn btn-outline-dark btn-square"><i class="fas fa-shopping-cart"></i></span>
+                            <span data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}" hx-vals='{"action": "remove"}' hx-target="this" hx-swap="none" class="btn btn-outline-dark btn-square"><i class="fas fa-shopping-cart"></i></span>
                         {% else %}
-                            <span data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}?quantity=1" hx-target="this" hx-swap="none" class="btn btn-outline-dark btn-square"><i class="fas fa-cart-plus"></i></span>
+                            <span data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}" hx-vals='{"action": "add"}' hx-target="this" hx-swap="none" class="btn btn-outline-dark btn-square"><i class="fas fa-cart-plus"></i></span>
                         {% endif %}
                     {% endwith %}
                 </div>

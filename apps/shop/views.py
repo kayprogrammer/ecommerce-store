@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.db import transaction
 from apps.accounts.mixins import LoginRequiredMixin
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
 from apps.shop.models import (
@@ -185,26 +186,39 @@ class CartView(View):
 
 
 class ToggleCartView(View):
+    @transaction.atomic
     def get(self, request, *args, **kwargs):
         user, guest_id = get_user_or_guest_id(request)
-        quantity = int(request.GET.get("quantity", 1))
         page = request.GET.get("query_page")  # For cart page
-        # If quantity is 0, then we delete item from cart
+        action = request.GET.get("action")  # For cart action
+
+        # Todo: in_stock functionality should affect the buyer only and will only been edited after successful order 
         product = get_object_or_404(Product, slug=kwargs["slug"])
         orderitem, created = OrderItem.objects.get_or_create(
             user=user, guest_id=guest_id, order=None, product=product
         )
-        response_data = {"created": True, "item_id": orderitem.id, "quantity": quantity}
+        response_data = {"created": True, "item_id": orderitem.id}
         if not created:
-            if quantity < 1:
-                orderitem.delete()
-                response_data["created"] = False
-                if page == "cart":
-                    response_data["remove"] = True
-            else:
-                orderitem.quantity = quantity
+            if action == "add":
+                orderitem.quantity += 1
                 orderitem.save()
-        response_data["orderitem_total"] = orderitem.get_total
+                response_data["quantity"] = orderitem.quantity
+                product.in_stock -= 1
+            elif action == "reduce" or action == "remove":
+                product.in_stock += 1
+                response_data["created"] = False
+                if action == "remove" or orderitem.quantity == 1:
+                    orderitem.delete()
+                    if page == "cart":
+                        response_data["remove"] = True
+                else:
+                    orderitem.quantity -= 1
+                    orderitem.save()
+                    response_data["quantity"] = orderitem.quantity
+        else:
+            product.in_stock -= 1
+        product.save()
+        response_data.update({"orderitem_total": orderitem.get_total, "in_stock": product.in_stock})
         return JsonResponse(response_data)
 
 
