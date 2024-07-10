@@ -243,7 +243,6 @@
                 const action = target.getAttribute('data-action');
                 const page = target.getAttribute('data-page');
                 const baseParent = target.closest(".product-item-row") || target.closest("tr")
-                const unitsLeft = response.in_stock
                 if (response.remove) {
                     baseParent.remove()
                 } else if (response.created === true) {
@@ -252,6 +251,7 @@
                         if (action === "cart") {
                             iconElement.className = 'fas fa-shopping-cart'
                             target.setAttribute('hx-vals', JSON.stringify({ action: "remove" }));
+                            if (target.tagName === "BUTTON") target.querySelector("span").textContent = ' Remove From Cart'
                         };
                     }
                 } else {
@@ -260,6 +260,7 @@
                         if (action === "cart") {
                             iconElement.className = 'fas fa-cart-plus'
                             target.setAttribute('hx-vals', JSON.stringify({ action: "add" }));
+                            if (target.tagName === "BUTTON") target.querySelector("span").textContent = ' Add To Cart'
                         };
                     }
                 }
@@ -269,9 +270,19 @@
                     const quantityElem = baseParent.querySelector(`#quantity-${response.item_id}`);
                     totalElem.innerHTML = `$${response.orderitem_total}`
                     quantityElem.innerHTML = response.quantity
-                    if (unitsLeft < 1) {
-                        target.disabled = true;
-                    }
+                    if (cartAction === "remove") {
+                        // Find the nearest .input-group container
+                        const inputGroup = target.closest('.input-group');
+
+                        // Find the plus button within the same container
+                        const plusButton = inputGroup.querySelector('.btn-plus');
+
+                        // Remove the disabled attribute from the plus button
+                        if (plusButton && plusButton.hasAttribute('disabled')) {
+                            plusButton.removeAttribute('disabled');
+                        }
+                    } 
+                    if (response.item_finished) target.disabled = true;
                     $("#cart-summary").load(" #cart-summary > *" ); 
                 }
             }

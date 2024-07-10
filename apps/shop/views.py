@@ -192,7 +192,6 @@ class ToggleCartView(View):
         page = request.GET.get("query_page")  # For cart page
         action = request.GET.get("action")  # For cart action
 
-        # Todo: in_stock functionality should affect the buyer only and will only been edited after successful order 
         product = get_object_or_404(Product, slug=kwargs["slug"])
         orderitem, created = OrderItem.objects.get_or_create(
             user=user, guest_id=guest_id, order=None, product=product
@@ -200,12 +199,13 @@ class ToggleCartView(View):
         response_data = {"created": True, "item_id": orderitem.id}
         if not created:
             if action == "add":
-                orderitem.quantity += 1
-                orderitem.save()
-                response_data["quantity"] = orderitem.quantity
-                product.in_stock -= 1
-            elif action == "reduce" or action == "remove":
-                product.in_stock += 1
+                if orderitem.quantity < product.in_stock:
+                    orderitem.quantity += 1
+                    orderitem.save()
+                    response_data["quantity"] = orderitem.quantity
+                if orderitem.quantity >= product.in_stock:
+                    response_data["item_finished"] = True
+            elif action in ["reduce", "remove"]:
                 response_data["created"] = False
                 if action == "remove" or orderitem.quantity == 1:
                     orderitem.delete()
@@ -215,10 +215,8 @@ class ToggleCartView(View):
                     orderitem.quantity -= 1
                     orderitem.save()
                     response_data["quantity"] = orderitem.quantity
-        else:
-            product.in_stock -= 1
-        product.save()
-        response_data.update({"orderitem_total": orderitem.get_total, "in_stock": product.in_stock})
+        if "remove" not in response_data:
+            response_data.update({"orderitem_total": orderitem.get_total})
         return JsonResponse(response_data)
 
 

@@ -94,21 +94,13 @@
                         </form>
                     </div>
                     <div class="d-flex align-items-center mb-4 pt-2">
-                        <div class="input-group quantity mr-3" style="width: 130px;">
-                            <div class="input-group-btn">
-                                <button class="btn btn-primary btn-minus">
-                                    <i class="fa fa-minus"></i>
-                                </button>
-                            </div>
-                            <input type="text" class="form-control bg-secondary border-0 text-center" value="1">
-                            <div class="input-group-btn">
-                                <button class="btn btn-primary btn-plus">
-                                    <i class="fa fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary px-3"><i class="fa fa-shopping-cart mr-1"></i> Add To
-                            Cart</button>
+                        {% with is_in_cart=product.id|is_in_cart:request %}
+                            {% if is_in_cart %}
+                                <button data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}" hx-vals='{"action": "remove"}' hx-target="this" hx-swap="none" class="btn btn-primary px-3"><i class="fas fa-shopping-cart"></i><span> Remove From Cart</span></button>
+                            {% else %}
+                                <button data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}" hx-vals='{"action": "add"}' hx-target="this" hx-swap="none" class="btn btn-primary px-3"><i class="fas fa-cart-plus"></i><span> Add To Cart</span></button>
+                            {% endif %}
+                        {% endwith %}
                     </div>
                     <strong class="text-dark mr-2">{{ product.in_stock }} units left</strong>
                     <div class="d-flex pt-2">

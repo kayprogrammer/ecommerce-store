@@ -45,7 +45,7 @@
                                         </div>
                                         <span id="quantity-{{orderitem.id}}" type="text" class="form-control form-control-sm bg-secondary border-0 text-center">{{ orderitem.quantity }}</span>
                                         <div class="input-group-btn">
-                                            <button {% if orderitem.product.in_stock < 1 %} disabled {% endif %} data-page="cart" data-action="cart" data-cart-action="add" class="btn btn-sm btn-primary btn-plus" hx-get="{% url 'toggle-cart' orderitem.product.slug %}?action=add" hx-swap="none">
+                                            <button {% if orderitem.quantity >= orderitem.product.in_stock %} disabled {% endif %} data-page="cart" data-action="cart" data-cart-action="add" class="btn btn-sm btn-primary btn-plus" hx-get="{% url 'toggle-cart' orderitem.product.slug %}?action=add" hx-swap="none">
                                                 <i class="fa fa-plus"></i>
                                             </button>
                                         </div>

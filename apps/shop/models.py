@@ -198,6 +198,7 @@ class OrderItem(BaseModel):
         return self.product.price_current * self.quantity
 
     class Meta:
+        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "product", "order"],
