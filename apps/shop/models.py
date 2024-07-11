@@ -1,3 +1,4 @@
+import random
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
 from autoslug import AutoSlugField
@@ -84,6 +85,18 @@ class Product(BaseModel):
     @property
     def get_absolute_url(self):
         return reverse("product", kwargs={"slug": self.slug})
+
+    @property
+    def default_size(self):
+        # There can be more better implementations to properties like this
+        # I'm just tired thats all 🙂.
+        return self.sizes.first()
+
+    @property
+    def default_color(self):
+        # There can be more better implementations to properties like this
+        # I'm just tired thats all 🙂.
+        return self.colours.first()
 
 
 class Wishlist(BaseModel):
@@ -192,6 +205,7 @@ class OrderItem(BaseModel):
     quantity = models.PositiveIntegerField(default=1)
     size = models.ForeignKey(Size, on_delete=models.CASCADE, null=True)
     color = models.ForeignKey(Colour, on_delete=models.CASCADE, null=True)
+    ordered = models.BooleanField(default=False, editable=False)
 
     @property
     def get_total(self):
@@ -201,17 +215,23 @@ class OrderItem(BaseModel):
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "product", "order"],
+                fields=["user", "product", "ordered", "size_id", "color_id"],
                 name="unique_user_product_orderitems",
             ),
             models.UniqueConstraint(
-                fields=["guest_id", "product", "order"],
+                fields=["guest_id", "product", "ordered", "size_id", "color_id"],
                 name="unique_guest_id_product_orderitems",
             ),
         ]
 
     def __str__(self):
         return str(self.product.name)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.color = self.product.default_color
+            self.size = self.product.default_size
+        return super(OrderItem, self).save(*args, **kwargs)
 
 
 class Review(BaseModel):

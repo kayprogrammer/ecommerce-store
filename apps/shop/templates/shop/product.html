@@ -76,7 +76,7 @@
                         <form>
                             {% for size in product.sizes.all  %}
                                 <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" class="custom-control-input" id="size-{{ size.value }}" name="size">
+                                    <input type="radio" class="custom-control-input" id="size-{{ size.value }}" value="{{ size.value }}" name="size">
                                     <label class="custom-control-label" for="size-{{ size.value }}">{{ size.value }}</label>
                                 </div>
                             {% endfor %}
@@ -87,20 +87,17 @@
                         <form>
                             {% for color in product.colours.all  %}
                                 <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" class="custom-control-input" id="color-{{ color.value }}" name="color">
+                                    <input type="radio" class="custom-control-input" id="color-{{ color.value }}" value="{{ color.value }}" name="color">
                                     <label class="custom-control-label" for="color-{{ color.value }}">{{ color.value }}</label>
                                 </div>
                             {% endfor %}
                         </form>
                     </div>
                     <div class="d-flex align-items-center mb-4 pt-2">
-                        {% with is_in_cart=product.id|is_in_cart:request %}
-                            {% if is_in_cart %}
-                                <button data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}" hx-vals='{"action": "remove"}' hx-target="this" hx-swap="none" class="btn btn-primary px-3"><i class="fas fa-shopping-cart"></i><span> Remove From Cart</span></button>
-                            {% else %}
-                                <button data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}" hx-vals='{"action": "add"}' hx-target="this" hx-swap="none" class="btn btn-primary px-3"><i class="fas fa-cart-plus"></i><span> Add To Cart</span></button>
-                            {% endif %}
-                        {% endwith %}
+                        <button id="cart-button" data-action="cart" hx-get="{% url 'toggle-cart' product.slug %}" hx-vals='{"action": "add"}' hx-target="this" hx-swap="none" class="btn btn-primary px-3">
+                            <i class="fas fa-cart-plus"></i>
+                            <span> Add To Cart</span>
+                        </button>
                     </div>
                     <strong class="text-dark mr-2">{{ product.in_stock }} units left</strong>
                     <div class="d-flex pt-2">
@@ -237,4 +234,80 @@
         </div>
     </div>
     <!-- Products End -->
+{% endblock %}
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all radio buttons
+            const colorRadioButtons = document.querySelectorAll('input[name="color"]');
+            const sizeRadioButtons = document.querySelectorAll('input[name="size"]');
+        
+             // Check if there are available colors and sizes
+            const hasColors = colorRadioButtons.length > 0;
+            const hasSizes = sizeRadioButtons.length > 0;
+            
+            // Get the button
+            const hxButton = document.getElementById('cart-button');
+            if (hxButton !== null) {
+                // Function to update hx-vals attribute and check cart status
+                function updateHxValsAndCheckCart() {
+                    const selectedColor = document.querySelector('input[name="color"]:checked');
+                    const selectedSize = document.querySelector('input[name="size"]:checked');
+                    let vals = JSON.parse(hxButton.getAttribute('hx-vals') || '{}');
+                    if (selectedColor) {
+                        vals['color'] = selectedColor.value;
+                    } else {
+                        delete vals['color'];
+                    }
+                    if (selectedSize) {
+                        vals['size'] = selectedSize.value;
+                    } else {
+                        delete vals['size'];
+                    }
+        
+                    hxButton.setAttribute('hx-vals', JSON.stringify(vals));
+                    
+                    // Disable the button if colors are available and none is selected
+                    // or if sizes are available and none is selected
+                    if ((hasColors && !selectedColor) || (hasSizes && !selectedSize)) {
+                        hxButton.disabled = true;
+                        return; // Skip checking the cart if the button is disabled
+                    } else {
+                        hxButton.disabled = false;
+                    }
+
+                    // Check if the product is in the cart with the selected attributes
+                    if (selectedColor && selectedSize) {
+                        const size = selectedSize.value;
+                        const color = selectedColor.value;
+        
+                        fetch(`{% url 'check-product-is-in-cart' product.slug %}?size=${size}&color=${color}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.is_in_cart) {
+                                    hxButton.setAttribute('hx-vals', JSON.stringify({...vals, action: "remove"}));
+                                    hxButton.querySelector('i').classList.replace('fa-cart-plus', 'fa-shopping-cart');
+                                    hxButton.querySelector('span').textContent = ' Remove From Cart';
+                                } else {
+                                    hxButton.setAttribute('hx-vals', JSON.stringify({...vals, action: "add"}));
+                                    hxButton.querySelector('i').classList.replace('fa-shopping-cart', 'fa-cart-plus');
+                                    hxButton.querySelector('span').textContent = ' Add To Cart';
+                                }
+                            });
+                    }
+                }
+        
+                // Add event listener to each radio button
+                colorRadioButtons.forEach(radio => {
+                    radio.addEventListener('change', updateHxValsAndCheckCart);
+                });
+                sizeRadioButtons.forEach(radio => {
+                    radio.addEventListener('change', updateHxValsAndCheckCart);
+                });
+        
+                // Initialize the hx-vals attribute and check cart status if any radio button is already selected
+                updateHxValsAndCheckCart();
+            }
+        });
+    </script>        
 {% endblock %}

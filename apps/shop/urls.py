@@ -19,5 +19,10 @@ urlpatterns = [
     path(
         "toggle-cart/<slug:slug>/", views.ToggleCartView.as_view(), name="toggle-cart"
     ),
+    path(
+        "check-product-is-in-cart/<slug:slug>/",
+        views.CheckProductIsInCartView.as_view(),
+        name="check-product-is-in-cart",
+    ),
     path("checkout/<str:tx_ref>/", views.CheckoutView.as_view(), name="checkout"),
 ]

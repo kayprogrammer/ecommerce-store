@@ -142,7 +142,7 @@ class CartView(View):
         user, guest_id = get_user_or_guest_id(request)
         orderitems = OrderItem.objects.filter(
             user=user, guest_id=guest_id, order=None
-        ).select_related("product")
+        ).select_related("product", "size", "color")
         cart_subtotal = sum([orderitem.get_total for orderitem in orderitems])
         shipping_fee = settings.SHIPPING_FEE * orderitems.count()
         cart_total = cart_subtotal + shipping_fee
@@ -181,7 +181,9 @@ class CartView(View):
                 )
                 return redirect(reverse("cart"))
         order = Order.objects.create(user=user)
-        OrderItem.objects.filter(user=user, order=None).update(order=order)
+        OrderItem.objects.filter(user=user, ordered=False).update(
+            order=order, ordered=True
+        )
         return redirect(reverse("checkout", kwargs={"tx_ref": order.tx_ref}))
 
 
@@ -191,10 +193,26 @@ class ToggleCartView(View):
         user, guest_id = get_user_or_guest_id(request)
         page = request.GET.get("query_page")  # For cart page
         action = request.GET.get("action")  # For cart action
-
+        size = request.GET.get("size")
+        color = request.GET.get("color")
         product = get_object_or_404(Product, slug=kwargs["slug"])
+        if size:
+            size = product.sizes.get_or_none(value=size)
+            if not size:
+                return JsonResponse({"error": "Invalid size selected"})
+
+        if color:
+            color = product.colours.get_or_none(value=color)
+            if not color:
+                return JsonResponse({"error": "Invalid size selected"})
+
         orderitem, created = OrderItem.objects.get_or_create(
-            user=user, guest_id=guest_id, order=None, product=product
+            user=user,
+            guest_id=guest_id,
+            ordered=False,
+            product=product,
+            size=size,
+            color=color,
         )
         response_data = {"created": True, "item_id": orderitem.id}
         if not created:
@@ -215,9 +233,31 @@ class ToggleCartView(View):
                     orderitem.quantity -= 1
                     orderitem.save()
                     response_data["quantity"] = orderitem.quantity
-        if "remove" not in response_data:
-            response_data.update({"orderitem_total": orderitem.get_total})
+        response_data["orderitem_total"] = orderitem.get_total
         return JsonResponse(response_data)
+
+
+class CheckProductIsInCartView(View):
+    def get(self, request, *args, **kwargs):
+        user, guest_id = get_user_or_guest_id(request)
+        size = request.GET.get("size")
+        color = request.GET.get("color")
+        slug = kwargs["slug"]  # Assuming you pass the product slug in the URL
+
+        product = get_object_or_404(Product, slug=slug)
+        if size:
+            size = product.sizes.get_or_none(value=size)
+            if not size:
+                return JsonResponse({"error": "Invalid size selected"})
+        if color:
+            color = product.colours.get_or_none(value=color)
+            if not color:
+                return JsonResponse({"error": "Invalid size selected"})
+
+        is_in_cart = OrderItem.objects.filter(
+            user=user, guest_id=guest_id, product=product, size=size, color=color
+        ).exists()
+        return JsonResponse({"is_in_cart": is_in_cart})
 
 
 class CheckoutView(LoginRequiredMixin, View):

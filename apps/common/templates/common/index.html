@@ -250,7 +250,9 @@
                         iconElement.className = 'fas fa-heart';
                         if (action === "cart") {
                             iconElement.className = 'fas fa-shopping-cart'
-                            target.setAttribute('hx-vals', JSON.stringify({ action: "remove" }));
+                            let vals = JSON.parse(target.getAttribute('hx-vals') || '{}');
+                            vals['action'] = 'remove'
+                            target.setAttribute('hx-vals', JSON.stringify(vals));
                             if (target.tagName === "BUTTON") target.querySelector("span").textContent = ' Remove From Cart'
                         };
                     }
@@ -259,7 +261,9 @@
                         iconElement.className = 'far fa-heart';
                         if (action === "cart") {
                             iconElement.className = 'fas fa-cart-plus'
-                            target.setAttribute('hx-vals', JSON.stringify({ action: "add" }));
+                            let vals = JSON.parse(target.getAttribute('hx-vals') || '{}');
+                            vals['action'] = 'add'
+                            target.setAttribute('hx-vals', JSON.stringify(vals));
                             if (target.tagName === "BUTTON") target.querySelector("span").textContent = ' Add To Cart'
                         };
                     }
