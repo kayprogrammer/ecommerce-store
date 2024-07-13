@@ -263,7 +263,7 @@ class CheckProductIsInCartView(View):
 class CheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        order = Order.objects.get(user=user, tx_ref=kwargs["tx_ref"])
-        shipping_addresses = ShippingAddress.objects.filter(user=user)
-        context = {"order": order, "shipping_addresses": shipping_addresses}
+        order = Order.objects.prefetch_related("orderitems").prefetch_related("orderitems__product").get(user=user, tx_ref=kwargs["tx_ref"])
+        shipping_address = ShippingAddress.objects.order_by("created_at").last()
+        context = {"order": order}
         return render(request, "shop/checkout.html", context=context)

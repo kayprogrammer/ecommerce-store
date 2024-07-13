@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.fields.files import ImageFieldFile
 from autoslug import AutoSlugField
 from django.urls import reverse
+from django.conf import settings
 from apps.accounts.models import User
 from apps.common.models import BaseModel, generate_unique_code
 from apps.shop.choices import (
@@ -185,11 +186,18 @@ class Order(BaseModel):
         super().save(*args, **kwargs)
 
     @property
-    def get_cart_total(self):
+    def get_cart_subtotal(self):
         orderitems = self.orderitems.all()
         total = sum([item.get_total for item in orderitems])
         return total
 
+    @property
+    def shipping_fee(self):
+        return settings.SHIPPING_FEE * self.orderitems.count()
+
+    @property
+    def get_cart_total(self):
+        return self.get_cart_subtotal + self.shipping_fee
 
 class OrderItem(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
