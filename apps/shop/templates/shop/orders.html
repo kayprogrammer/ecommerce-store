@@ -1,0 +1,16 @@
+{% extends "common/index.html" %}
+{% load static %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+    <!-- Breadcrumb Start -->
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-12">
+                <nav class="breadcrumb bg-light mb-30">
+                    <a class="breadcrumb-item text-dark" href="/">Home</a>
+                    <a class="breadcrumb-item active" href="{% url 'orders' %}">Orders</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock %}

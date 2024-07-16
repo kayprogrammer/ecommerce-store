@@ -8,6 +8,7 @@ from apps.accounts.models import User
 from apps.common.models import BaseModel, generate_unique_code
 from apps.shop.choices import (
     DELIVERY_STATUS_CHOICES,
+    PAYMENT_GATEWAY_CHOICES,
     PAYMENT_STATUS_CHOICES,
     RATING_CHOICES,
 )
@@ -171,6 +172,9 @@ class Order(BaseModel):
     payment_status = models.CharField(
         max_length=20, default="PENDING", choices=PAYMENT_STATUS_CHOICES
     )
+    payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_GATEWAY_CHOICES, null=True
+    )
     shipping_address = models.ForeignKey(
         ShippingAddress, on_delete=models.SET_NULL, blank=True, null=True
     )
@@ -198,6 +202,7 @@ class Order(BaseModel):
     @property
     def get_cart_total(self):
         return self.get_cart_subtotal + self.shipping_fee
+
 
 class OrderItem(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)

@@ -9,7 +9,9 @@ from django.conf import settings
 from django.db import transaction
 from apps.accounts.mixins import LoginRequiredMixin
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
-from apps.shop.models import (
+from apps.shop.choices import PAYMENT_STATUS_CHOICES
+from .forms import ShippingAddressForm
+from .models import (
     Category,
     Coupon,
     Order,
@@ -19,7 +21,7 @@ from apps.shop.models import (
     Wishlist,
 )
 
-from apps.shop.utils import (
+from .utils import (
     colour_size_filter_products,
     generic_products_ctx,
     get_user_or_guest_id,
@@ -263,7 +265,62 @@ class CheckProductIsInCartView(View):
 class CheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        order = Order.objects.prefetch_related("orderitems").prefetch_related("orderitems__product").get(user=user, tx_ref=kwargs["tx_ref"])
+        order = Order.objects.prefetch_related(
+            "orderitems", "orderitems__product"
+        ).get_or_none(user=user, tx_ref=kwargs["tx_ref"])
+        if not order:
+            raise Http404("Order Not Found")
         shipping_address = ShippingAddress.objects.order_by("created_at").last()
-        context = {"order": order}
+        form = ShippingAddressForm(instance=shipping_address)
+        context = {"order": order, "form": form}
         return render(request, "shop/checkout.html", context=context)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        order = Order.objects.prefetch_related(
+            "orderitems", "orderitems__product"
+        ).get_or_none(user=user, tx_ref=kwargs["tx_ref"])
+        if not order:
+            raise Http404("Order Not Found")
+        form = ShippingAddressForm(request.POST)
+        print(form.errors)
+        if form.is_valid():
+            payment_method = form.cleaned_data.get("payment_method")
+            new_shipping_address = form.save(commit=False)
+            new_shipping_address.user = user
+            new_shipping_address.save()
+            order.shipping_address = new_shipping_address
+            order.payment_method = payment_method
+            order.payment_status = "PROCESSING"
+            order.save()
+            return JsonResponse(
+                {
+                    "payment_method": payment_method,
+                    "pubk": settings.PAYSTACK_PUBLIC_KEY,
+                    "tx_ref": order.tx_ref,
+                    "amount": order.get_cart_total * 100,
+                    "name": user.name,
+                    "email": user.email,
+                }
+            )
+
+        context = {"order": order, "form": form}
+        return render(request, "shop/checkout.html", context=context)
+
+
+class UpdateOrderView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        order = get_object_or_404(Order, user=user, tx_ref=kwargs["tx_ref"])
+        payment_status = request.GET.get("payment_status")
+
+        if payment_status == "CANCELLED":
+            order.payment_status = payment_status
+            order.save()
+        return redirect(reverse("orders"))
+
+
+class OrdersView(LoginRequiredMixin, View):
+    def get(self, request):
+        context = {}
+        return render(request, "shop/orders.html", context)
