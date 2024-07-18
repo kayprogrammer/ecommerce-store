@@ -26,6 +26,9 @@ urlpatterns = [
     ),
     path("checkout/<str:tx_ref>/", views.CheckoutView.as_view(), name="checkout"),
     path("orders/", views.OrdersView.as_view(), name="orders"),
-    path("orders/<str:tx_ref>/update", views.UpdateOrderView.as_view(), name="update-order"),
+    path(
+        "orders/<str:tx_ref>/update/",
+        views.UpdateOrderView.as_view(),
+        name="update-order",
+    ),
 ]
-

@@ -2,6 +2,13 @@
 {% load static %}
 {% block title %}Orders{% endblock %}
 {% block content %}
+    <style>
+        .order-items-table {
+            display: none;
+            margin: 10px 0;
+        }
+    </style>
+
     <!-- Breadcrumb Start -->
     <div class="container-fluid">
         <div class="row px-xl-5">
@@ -13,4 +20,63 @@
             </div>
         </div>
     </div>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Order List</h1>
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Payment Status</th>
+                    <th>Delivery Status</th>
+                    <th>Price Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr role="button" class="order-row" data-target="#order-items-{{ order.tx_ref }}">
+                        <td>{{ order.tx_ref }}</td>
+                        <td>{{ order.payment_status }}</td>
+                        <td>{{ order.delivery_status }}</td>
+                        <td>{{ order.get_cart_total }}</td>
+                    </tr>
+                    <tr id="order-items-{{order.tx_ref}}">
+                        <td colspan="4">
+                            <table class="table table-sm order-items-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Price Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for orderitem in order.orderitems.all %}
+                                        <tr>
+                                            <td role="button" onclick="window.location='{{orderitem.product.get_absolute_url}}'">{{ orderitem.product.name }}</td>
+                                            <td>{{ orderitem.quantity }}</td>
+                                            <td>${{ orderitem.get_total }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <td colspan="4" style="color: blue; font-weight: bold; font-size: 13px; text-align: center;">No items here!</td>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function(){
+            $('.order-row').click(function(){
+                var target = $(this).data('target');
+                $(target).find('.order-items-table').slideToggle('slow');
+            });
+        });
+    </script>
 {% endblock %}

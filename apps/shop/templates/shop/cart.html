@@ -31,7 +31,7 @@
                             <th>Remove</th>
                         </tr>
                     </thead>
-                    <tbody class="align-middle">
+                    <tbody class="align-middle cart-item">
                         {% for orderitem in orderitems %}
                             <tr id="orderitem-{{ orderitem.id }}">
                                 <td class="align-middle align-items-center d-flex" role="button" onclick="window.location='{{orderitem.product.get_absolute_url}}'">
@@ -65,6 +65,8 @@
                                 <td class="align-middle" id="total-{{orderitem.id}}">${{ orderitem.get_total }}</td>
                                 <td class="align-middle"><span><span><button data-page="cart" data-action="cart" hx-get="{% url 'toggle-cart' orderitem.product.slug %}?query_page=cart&action=remove{% if orderitem.size.value %}&size={{orderitem.size.value}}{% endif %}{% if orderitem.color.value %}&color={{orderitem.color.value}}{% endif %}" hx-swap="none" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button></span></span></td>
                             </tr>
+                        {% empty %}
+                            <td class="text-center font-weight-bold cart-empty" colspan="5" style="color: blue; font-size: 15px;">No items in cart! <a style="color: blue; text-decoration: underline;" href="{% url 'products' %}">Shop now</a></p></td>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -93,7 +95,7 @@
                             <h5>Total</h5>
                             <h5>${{ cart_total }}</h5>
                         </div>
-                        <button type="submit" class="btn btn-block btn-primary font-weight-bold my-3 py-3">Proceed To Checkout</button>
+                        <button {% if orderitems.count < 1 %} disabled {% endif %} type="submit" class="btn btn-block btn-primary font-weight-bold my-3 py-3">Proceed To Checkout</button>
                     </div>
                 </div>
             </form>

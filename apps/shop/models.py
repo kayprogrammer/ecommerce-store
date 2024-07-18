@@ -1,6 +1,7 @@
 import random
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
+from django.core.validators import MaxValueValidator, MinValueValidator
 from autoslug import AutoSlugField
 from django.urls import reverse
 from django.conf import settings
@@ -155,7 +156,10 @@ class ShippingAddress(BaseModel):
 
 class Coupon(BaseModel):
     code = models.CharField(max_length=12, blank=True, unique=True)
-    expired = models.BooleanField(default=False)
+    expiry_date = models.DateTimeField(null=True)
+    percentage_off = models.PositiveIntegerField(
+        default=10, validators=[MinValueValidator(1), MaxValueValidator(100)]
+    )
 
     def save(self, *args, **kwargs) -> None:
         if self._state.adding:
@@ -201,7 +205,11 @@ class Order(BaseModel):
 
     @property
     def get_cart_total(self):
-        return self.get_cart_subtotal + self.shipping_fee
+        coupon = self.coupon
+        total = self.get_cart_subtotal + self.shipping_fee
+        if coupon:
+            total = total - ((coupon.percentage_off * total) / 100)
+        return total
 
 
 class OrderItem(BaseModel):
@@ -228,11 +236,11 @@ class OrderItem(BaseModel):
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "product", "ordered", "size_id", "color_id"],
+                fields=["user", "product", "order_id", "size_id", "color_id"],
                 name="unique_user_product_orderitems",
             ),
             models.UniqueConstraint(
-                fields=["guest_id", "product", "ordered", "size_id", "color_id"],
+                fields=["guest_id", "product", "order_id", "size_id", "color_id"],
                 name="unique_guest_id_product_orderitems",
             ),
         ]

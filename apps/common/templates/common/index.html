@@ -128,6 +128,10 @@
                             <a href="{% url 'products' %}" class="nav-item nav-link {% if request.path == products_url %}active{% endif %}">Shop</a>
                             {% url 'wishlist' as wishlist_url %}
                             <a href="{% url 'wishlist' %}" class="nav-item nav-link {% if request.path == wishlist_url %}active{% endif %}">Wishlist</a>
+                            {% if user.is_authenticated %}
+                                {% url 'orders' as orders_url %}
+                                <a href="{% url 'orders' %}" class="nav-item nav-link {% if request.path == orders_url %}active{% endif %}">Orders</a>
+                            {% endif %}
                             {% url 'contact' as contact_url %}
                             <a href="{% url 'contact' %}" class="nav-item nav-link {% if request.path == contact_url %}active{% endif %}">Contact</a>
                         </div>
@@ -231,12 +235,13 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/easing.min.js' %}"></script>
     <script src="{% static 'js/vendor/owl.carousel.min.js' %}"></script>
+    <script src="https://js.paystack.co/v2/inline.js"></script>
 
     <!-- Template Javascript -->
     <script src="{% static 'js/main.js' %}"></script>
     <script>
         document.addEventListener('htmx:afterSwap', (event) => {
-            if (event.detail.xhr && event.detail.xhr.response) {
+            if (event.detail.xhr && event.detail.xhr.response && !window.location.pathname.includes("shop/checkout")) {
                 const response = JSON.parse(event.detail.xhr.response);
                 const target = event.target;
                 const iconElement = target.querySelector('i');
@@ -286,11 +291,15 @@
                             plusButton.removeAttribute('disabled');
                         }
                     } 
+                    if (response.cart_items_count === 0) {
+                        $(".cart-item").html(`<td class="text-center font-weight-bold cart-empty" colspan="5" style="color: blue; font-size: 15px;">No items in cart! <a style="color: blue; text-decoration: underline;" href="/shop/">Shop now</a></p></td>`)
+                    }
                     if (response.item_finished) target.disabled = true;
                     $("#cart-summary").load(" #cart-summary > *" ); 
                 }
             }
             $("#cart-wishlist").load(location.href + " #cart-wishlist" ); 
+
         });
     </script>
     {% block js %}{% endblock %}

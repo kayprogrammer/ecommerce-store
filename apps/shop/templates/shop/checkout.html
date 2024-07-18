@@ -28,14 +28,15 @@
 
     <!-- Checkout Start -->
     <div class="container-fluid">
-        {% include 'shop/checkout' %}
+        {% include 'shop/checkout_form.html' %}
     </div>
     <!-- Checkout End -->
 {% endblock %}
 
 {% block js %}
     <script>
-        document.addEventListener('htmx:configRequest', function(event) {
+        const checkoutForm = document.getElementById('checkout-form')
+        checkoutForm.addEventListener('htmx:configRequest', function(event) {
             if (event.detail.elt.matches('form')) {
                 const button = document.getElementById('submit-btn');
                 button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
@@ -43,13 +44,19 @@
             }
         });
 
-        document.addEventListener('htmx:afterSwap', function(event) {
-            const response = JSON.parse(event.detail.xhr.response);
-            console.log(response)
-            const button = document.getElementById('submit-btn');
-            button.innerHTML = 'Place Order';
-            button.disabled = false;
-            payWithPaystack(response)
+        checkoutForm.addEventListener('htmx:beforeSwap', function(event) {
+            const contentType = event.detail.xhr.getResponseHeader('Content-Type');
+            if (contentType && contentType.indexOf('application/json') !== -1) {
+                event.detail.shouldSwap = false; // Prevent the swap
+                const response = JSON.parse(event.detail.xhr.response);
+                console.log(response)
+                // Handle the payment logic based on the payment method
+                if (response.payment_method === 'PAYSTACK') {
+                    payWithPaystack(response);
+                } else if (response.payment_method === 'PAYPAL') {
+                    // Initialize PayPal payment
+                }
+            }
         });
 
         

@@ -7,9 +7,9 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from apps.accounts.mixins import LoginRequiredMixin
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
-from apps.shop.choices import PAYMENT_STATUS_CHOICES
 from .forms import ShippingAddressForm
 from .models import (
     Category,
@@ -162,8 +162,13 @@ class CartView(View):
         user = request.user
         coupon_code = request.POST.get("coupon")
         coupon = None
+        orderitems = OrderItem.objects.filter(user=user, ordered=False)
+        if not orderitems.exists():
+            return redirect(reverse("cart"))
         if coupon_code:
-            coupon = Coupon.objects.get_or_none(code=coupon_code, expired=False)
+            coupon = Coupon.objects.get_or_none(
+                code=coupon_code, expiry_date__gt=timezone.now()
+            )
             if not coupon:
                 sweetify.error(
                     request,
@@ -182,10 +187,8 @@ class CartView(View):
                     timer=3000,
                 )
                 return redirect(reverse("cart"))
-        order = Order.objects.create(user=user)
-        OrderItem.objects.filter(user=user, ordered=False).update(
-            order=order, ordered=True
-        )
+        order = Order.objects.create(user=user, coupon=coupon)
+        orderitems.update(order=order, ordered=True)
         return redirect(reverse("checkout", kwargs={"tx_ref": order.tx_ref}))
 
 
@@ -229,6 +232,9 @@ class ToggleCartView(View):
                 response_data["created"] = False
                 if action == "remove" or orderitem.quantity == 1:
                     orderitem.delete()
+                    response_data["cart_items_count"] = OrderItem.objects.filter(
+                        user=user, guest_id=guest_id, ordered=False
+                    ).count()
                     if page == "cart":
                         response_data["remove"] = True
                 else:
@@ -265,9 +271,11 @@ class CheckProductIsInCartView(View):
 class CheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        order = Order.objects.prefetch_related(
-            "orderitems", "orderitems__product"
-        ).get_or_none(user=user, tx_ref=kwargs["tx_ref"])
+        order = (
+            Order.objects.select_related("coupon")
+            .prefetch_related("orderitems", "orderitems__product")
+            .get_or_none(user=user, payment_status="PENDING", tx_ref=kwargs["tx_ref"])
+        )
         if not order:
             raise Http404("Order Not Found")
         shipping_address = ShippingAddress.objects.order_by("created_at").last()
@@ -275,6 +283,7 @@ class CheckoutView(LoginRequiredMixin, View):
         context = {"order": order, "form": form}
         return render(request, "shop/checkout.html", context=context)
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         user = request.user
         order = Order.objects.prefetch_related(
@@ -283,7 +292,6 @@ class CheckoutView(LoginRequiredMixin, View):
         if not order:
             raise Http404("Order Not Found")
         form = ShippingAddressForm(request.POST)
-        print(form.errors)
         if form.is_valid():
             payment_method = form.cleaned_data.get("payment_method")
             new_shipping_address = form.save(commit=False)
@@ -299,13 +307,13 @@ class CheckoutView(LoginRequiredMixin, View):
                     "pubk": settings.PAYSTACK_PUBLIC_KEY,
                     "tx_ref": order.tx_ref,
                     "amount": order.get_cart_total * 100,
-                    "name": user.name,
+                    "name": user.full_name,
                     "email": user.email,
                 }
             )
 
         context = {"order": order, "form": form}
-        return render(request, "shop/checkout.html", context=context)
+        return render(request, "shop/checkout_form.html", context=context)
 
 
 class UpdateOrderView(LoginRequiredMixin, View):
@@ -322,5 +330,10 @@ class UpdateOrderView(LoginRequiredMixin, View):
 
 class OrdersView(LoginRequiredMixin, View):
     def get(self, request):
-        context = {}
+        orders = (
+            Order.objects.filter(user=request.user)
+            .prefetch_related("orderitems", "orderitems__product")
+            .order_by("-created_at")
+        )
+        context = {"orders": orders}
         return render(request, "shop/orders.html", context)

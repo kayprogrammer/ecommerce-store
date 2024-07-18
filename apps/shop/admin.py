@@ -3,6 +3,7 @@ from django.contrib import admin
 from apps.shop.models import (
     Category,
     Colour,
+    Coupon,
     Order,
     OrderItem,
     Product,
@@ -46,6 +47,12 @@ class ShippingAddressAdmin(admin.ModelAdmin):
     list_filter = list_display + ("state", "country")
 
 
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ("code", "percentage_off", "expiry_date")
+    list_filter = list_display
+    readonly_fields = ("code", "created_at")
+
+
 class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ("tx_ref",)
     list_display = (
@@ -74,6 +81,7 @@ admin.site.register(Colour, SizeAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Country, CountryAdmin)
+admin.site.register(Coupon, CouponAdmin)
 admin.site.register(ShippingAddress, ShippingAddressAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(Order, OrderAdmin)
