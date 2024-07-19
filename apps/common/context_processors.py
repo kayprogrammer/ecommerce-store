@@ -12,6 +12,8 @@ def sitedetail(request):
     sitedetail.google_client_id = settings.GOOGLE_CLIENT_ID
     sitedetail.facebook_app_id = settings.FACEBOOK_APP_ID
     sitedetail.shipping_fee = settings.SHIPPING_FEE
+    sitedetail.paypal_client_id = settings.PAYPAL_CLIENT_ID
+    sitedetail.paystack_public_key = settings.PAYSTACK_PUBLIC_KEY
 
     user, guest_id = get_user_or_guest_id(request)
     wishlist_count = Wishlist.objects.filter(user=user, guest_id=guest_id).count()

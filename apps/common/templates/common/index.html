@@ -58,13 +58,13 @@
                     </div>
                 </div>
                 <div class="d-inline-flex align-items-center d-block d-lg-none">
-                    <a href="" class="btn px-0 ml-2">
+                    <a href="{% url 'wishlist' %}" class="btn px-0 ml-2">
                         <i class="fas fa-heart text-dark"></i>
-                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;">0</span>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;">{{ wishlist_count }}</span>
                     </a>
-                    <a href="" class="btn px-0 ml-2">
+                    <a href="{% url 'cart' %}" class="btn px-0 ml-2">
                         <i class="fas fa-shopping-cart text-dark"></i>
-                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;">0</span>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;">{{ orderitem_count }}</span>
                     </a>
                 </div>
             </div>
@@ -236,6 +236,7 @@
     <script src="{% static 'js/easing.min.js' %}"></script>
     <script src="{% static 'js/vendor/owl.carousel.min.js' %}"></script>
     <script src="https://js.paystack.co/v2/inline.js"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id={{ sitedetail.paypal_client_id }}&currency=USD"></script>
 
     <!-- Template Javascript -->
     <script src="{% static 'js/main.js' %}"></script>

@@ -304,9 +304,8 @@ class CheckoutView(LoginRequiredMixin, View):
             return JsonResponse(
                 {
                     "payment_method": payment_method,
-                    "pubk": settings.PAYSTACK_PUBLIC_KEY,
                     "tx_ref": order.tx_ref,
-                    "amount": order.get_cart_total * 100,
+                    "amount": order.get_cart_total * 100 if payment_method == "PAYSTACK" else order.get_cart_total,
                     "name": user.full_name,
                     "email": user.email,
                 }
@@ -322,7 +321,7 @@ class UpdateOrderView(LoginRequiredMixin, View):
         order = get_object_or_404(Order, user=user, tx_ref=kwargs["tx_ref"])
         payment_status = request.GET.get("payment_status")
 
-        if payment_status == "CANCELLED":
+        if payment_status in ["CANCELLED", "FAILED"]:
             order.payment_status = payment_status
             order.save()
         return redirect(reverse("orders"))

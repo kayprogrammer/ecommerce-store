@@ -36,9 +36,9 @@
 {% block js %}
     <script>
         const checkoutForm = document.getElementById('checkout-form')
+        const button = document.getElementById('submit-btn');
         checkoutForm.addEventListener('htmx:configRequest', function(event) {
             if (event.detail.elt.matches('form')) {
-                const button = document.getElementById('submit-btn');
                 button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
                 button.disabled = true;
             }
@@ -55,6 +55,9 @@
                     payWithPaystack(response);
                 } else if (response.payment_method === 'PAYPAL') {
                     // Initialize PayPal payment
+                    const paypalContainer = $('<div id="paypal-button-container"></div>');
+                    $("#submit-btn").replaceWith(paypalContainer)
+                    payWithPaypal(response)
                 }
             }
         });
@@ -63,7 +66,7 @@
         function payWithPaystack(resp) {
             let handler = PaystackPop.setup({
 
-            key: resp.pubk, 
+            key: "{{ sitedetail.paystack_public_key }}", 
 
             email: resp.email,
 
@@ -84,6 +87,29 @@
 
             handler.openIframe();
 
+        }
+
+        function payWithPaypal(resp) {
+            // Render the PayPal button
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: resp.amount // The amount to be paid
+                            },
+                            custom_id: resp.tx_ref,
+                            invoice_id: resp.tx_ref,
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    window.location.href = "/shop/orders/"
+                },
+                onError: function(err) {
+                    window.location.href = `/shop/orders/${resp.tx_ref}/update/?payment_status=FAILED`
+                }
+            }).render("#paypal-button-container");
         }
     </script>
 {% endblock %}
