@@ -64,6 +64,8 @@
                             </table>
                         </td>
                     </tr>
+                {% empty %}
+                    <td colspan="4" style="color: blue; font-weight: bold; font-size: 15px; text-align: center;">No orders here yet!</td>
                 {% endfor %}
             </tbody>
         </table>
