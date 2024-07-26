@@ -9,9 +9,11 @@ import sweetify
 
 class HomeView(View):
     def get(self, request):
-        products = Product.objects.filter(in_stock__gt=0).annotate(**REVIEWS_AND_RATING_ANNOTATION).order_by(
-            "-created_at"
-        )[:8]
+        products = (
+            Product.objects.filter(in_stock__gt=0)
+            .annotate(**REVIEWS_AND_RATING_ANNOTATION)
+            .order_by("-created_at")[:8]
+        )
         context = {"products": products}
         return render(request, "general/home.html", context=context)
 

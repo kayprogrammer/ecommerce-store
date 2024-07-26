@@ -7,12 +7,12 @@
                 <div class="col-md-6 form-group">
                     <label>Full Name</label>
                     {{ form.full_name }}
-                    <p class="field-error">{{ form.full_name.errors }}</P>
+                    <p class="field-error">{{ form.full_name.errors.as_text }}</P>
                 </div>
                 <div class="col-md-6 form-group">
                     <label>Email</label>
                     {{ form.email }}
-                    <p class="field-error">{{ form.email.errors }}</P>
+                    <p class="field-error">{{ form.email.errors.as_text }}</P>
                 </div>
                 <div class="col-md-6 form-group">
                     <label>Phone Number</label>
@@ -22,27 +22,27 @@
                 <div class="col-md-6 form-group">
                     <label>Address</label>
                     {{ form.address }}
-                    <p class="field-error">{{ form.address.errors }}</P>
+                    <p class="field-error">{{ form.address.errors.as_text }}</P>
                 </div>
                 <div class="col-md-6 form-group">
                     <label>City</label>
                     {{ form.city }}
-                    <p class="field-error">{{ form.city.errors }}</P>
+                    <p class="field-error">{{ form.city.errors.as_text }}</P>
                 </div>
                 <div class="col-md-6 form-group">
                     <label>State</label>
                     {{ form.state }}
-                    <p class="field-error">{{ form.state.errors }}</P>
+                    <p class="field-error">{{ form.state.errors.as_text }}</P>
                 </div>
                 <div class="col-md-6 form-group">
                     <label>Country</label>
                     {{ form.country }}
-                    <p class="field-error">{{ form.country.errors }}</P>
+                    <p class="field-error">{{ form.country.errors.as_text }}</P>
                 </div>
                 <div class="col-md-6 form-group">
                     <label>Zipcode</label>
                     {{ form.zipcode }}
-                    <p class="field-error">{{ form.zipcode.errors }}</P>
+                    <p class="field-error">{{ form.zipcode.errors.as_text }}</P>
                 </div>
             </div>
         </div>

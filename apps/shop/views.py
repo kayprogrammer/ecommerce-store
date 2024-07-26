@@ -12,13 +12,14 @@ from django.utils import timezone
 from apps.accounts.mixins import LoginRequiredMixin
 from apps.accounts.senders import EmailUtil
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
-from .forms import ShippingAddressForm
+from .forms import ReviewForm, ShippingAddressForm
 from .models import (
     Category,
     Coupon,
     Order,
     OrderItem,
     Product,
+    Review,
     ShippingAddress,
     Wishlist,
 )
@@ -63,21 +64,60 @@ class ProductsView(ListView):
 
 
 class ProductView(View):
-    def get(self, request, *args, **kwargs):
+    def get_product(self, slug):
         products = (
             Product.objects.filter(in_stock__gt=0)
             .select_related("category")
             .annotate(**REVIEWS_AND_RATING_ANNOTATION)
         )
         product = products.prefetch_related("sizes", "colours", "reviews").get_or_none(
-            slug=kwargs["slug"]
+            slug=slug
         )
         if not product:
             raise Http404("Product does not exist!")
         related_products = products.filter(category_id=product.category_id).exclude(
             id=product.id
         )[:10]
-        context = {"product": product, "related_products": related_products}
+        reviews = product.reviews.order_by("-rating")
+        return product, related_products, reviews
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        product, related_products, reviews = self.get_product(kwargs["slug"])
+        review = None
+        if user.is_authenticated:
+            review = Review.objects.get_or_none(user=user, product=product)
+        form = ReviewForm(instance=review)
+        context = {
+            "product": product,
+            "review": review,
+            "reviews": reviews,
+            "related_products": related_products,
+            "form": form,
+        }
+        return render(request, "shop/product.html", context=context)
+
+    @method_decorator(login_required, name="dispatch")
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        slug = kwargs["slug"]
+        product, related_products, reviews = self.get_product(slug)
+        review = Review.objects.get_or_none(user=user, product=product)
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.product = product
+            instance.user = user
+            instance.save()
+            sweetify.success(request, title="Success", text="Review sent", timer=2500, button="OK")
+            return redirect(reverse("product", kwargs={"slug": slug}))
+        context = {
+            "product": product,
+            "review": review,
+            "reviews": reviews,
+            "related_products": related_products,
+            "form": form,
+        }
         return render(request, "shop/product.html", context=context)
 
 

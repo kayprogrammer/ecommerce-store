@@ -1,10 +1,10 @@
 from django import forms
 
-from apps.shop.choices import PAYMENT_GATEWAY_CHOICES
+from apps.shop.choices import PAYMENT_GATEWAY_CHOICES, RATING_CHOICES
 
 from .validators import PHONE_REGEX_VALIDATOR
 
-from .models import Country, ShippingAddress
+from .models import Country, Review, ShippingAddress
 
 
 class ShippingAddressForm(forms.ModelForm):
@@ -59,3 +59,18 @@ class ShippingAddressForm(forms.ModelForm):
         model = ShippingAddress
         fields = "__all__"
         exclude = ["id", "user", "created_at", "updated_at"]
+
+
+class ReviewForm(forms.ModelForm):
+    rating = forms.ChoiceField(
+        choices=RATING_CHOICES, initial=0, widget=forms.HiddenInput()
+    )
+    text = forms.CharField(
+        widget=forms.Textarea(
+            attrs={"class": "form-control", "rows": "5", "cols": "30"}
+        )
+    )
+
+    class Meta:
+        model = Review
+        fields = ["rating", "text"]

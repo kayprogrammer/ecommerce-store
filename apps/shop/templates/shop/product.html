@@ -3,6 +3,15 @@
 {% load custom_tags %}
 {% block title %}{{ product.name }}{% endblock %}
 {% block content %}
+    <style>
+        .field-error {
+            font-size: 12px;
+            font-weight: bold;
+            color: red;
+            margin-bottom: 5px;
+        }
+    </style>
+
     <!-- Breadcrumb Start -->
     <div class="container-fluid">
         <div class="row px-xl-5">
@@ -100,23 +109,6 @@
                         </button>
                     </div>
                     <strong class="text-dark mr-2">{{ product.in_stock }} units left</strong>
-                    <div class="d-flex pt-2">
-                        <strong class="text-dark mr-2">Share on:</strong>
-                        <div class="d-inline-flex">
-                            <a class="text-dark px-2" href="">
-                                <i class="fab fa-facebook-f"></i>
-                            </a>
-                            <a class="text-dark px-2" href="">
-                                <i class="fab fa-twitter"></i>
-                            </a>
-                            <a class="text-dark px-2" href="">
-                                <i class="fab fa-linkedin-in"></i>
-                            </a>
-                            <a class="text-dark px-2" href="">
-                                <i class="fab fa-pinterest"></i>
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -132,14 +124,14 @@
                                 <div class="col-md-6">
                                     <h4 class="mb-4">{{ product.reviews_count }} Review{% if product.reviews_count != 1 %}s{% endif %} for "{{ product.name }}"</h4>
                                     <div class="media mb-4 d-block">
-                                        {% for review in product.reviews.all %}
+                                        {% for review in reviews %}
                                             <div class="d-flex">
                                                 <img src="{{ review.user.avatar }}" style="height:50px; width:50px; object-fit:cover;" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;">
                                                 <div class="media-body">
                                                     <h6>{{ review.user.full_name }}<small> - <i>{{ review.created_at|date:"M d, Y" }}</i></small></h6>
                                                     <div class="text-primary mb-2">
                                                         {% for i in '12345'|make_list %}
-                                                            <i class="{% if forloop.counter > product.avg_rating %}far{% else %}fas{% endif %} fa-star"></i>
+                                                            <i class="{% if forloop.counter > review.rating %}far{% else %}fas{% endif %} fa-star"></i>
                                                         {% endfor %}
                                                     </div>
                                                     <p>{{ review.text }}</p>
@@ -150,33 +142,40 @@
                                 </div>
                                 <div class="col-md-6">
                                     <h4 class="mb-4">Leave a review</h4>
-                                    <small>Your email address will not be published. Required fields are marked *</small>
-                                    <div class="d-flex my-3">
+                                    <div class="d-flex my-1">
                                         <p class="mb-0 mr-2">Your Rating * :</p>
-                                        <div class="text-primary">
-                                            <i class="far fa-star"></i>
-                                            <i class="far fa-star"></i>
-                                            <i class="far fa-star"></i>
-                                            <i class="far fa-star"></i>
-                                            <i class="far fa-star"></i>
+                                        <div class="text-primary" id="review">
+                                            {% if review %}
+                                                {% for i in '12345'|make_list %}
+                                                    {% if forloop.counter > review.rating %}
+                                                        <i class="far fa-star"></i>
+                                                    {% else %}
+                                                        <i class="fa fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
                                         </div>
                                     </div>
-                                    <form>
+                                    {% if form.rating.errors %}
+                                        <p class="field-error">*Select a valid rating</P>
+                                    {% endif %}
+                                    <form method="post">
+                                        {% csrf_token %}
                                         <div class="form-group">
-                                            <label for="message">Your Review *</label>
-                                            <textarea id="message" cols="30" rows="5" class="form-control"></textarea>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="name">Your Name *</label>
-                                            <input type="text" class="form-control" id="name">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="email">Your Email *</label>
-                                            <input type="email" class="form-control" id="email">
+                                            <label for="text">Your Review *</label>
+                                            {{ form.text }}
+                                            <p class="field-error">{{ form.text.errors.as_text }}</P>
                                         </div>
                                         <div class="form-group mb-0">
                                             <input type="submit" value="Leave Your Review" class="btn btn-primary px-3">
                                         </div>
+                                        {{ form.rating }}
                                     </form>
                                 </div>
                             </div>
@@ -238,6 +237,25 @@
 {% block js %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('#review .fa-star');
+            const ratingValue = document.getElementById('id_rating');
+
+            stars.forEach((star, index) => {
+                star.addEventListener('click', () => {
+                    const rating = index + 1;
+                    ratingValue.value = rating;
+                    stars.forEach((s, i) => {
+                        if (i <= index) {
+                            s.classList.remove('far');
+                            s.classList.add('fa');
+                        } else {
+                            s.classList.remove('fa');
+                            s.classList.add('far');
+                        }
+                    });
+                });
+            });
+
             // Get all radio buttons
             const colorRadioButtons = document.querySelectorAll('input[name="color"]');
             const sizeRadioButtons = document.querySelectorAll('input[name="size"]');
