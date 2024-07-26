@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+
+from apps.accounts.utils import move_wishlist_and_cart_items_to_user
 from .mixins import LogoutRequiredMixin
 from .auth import Facebook, Google, register_social_user
 
@@ -30,6 +32,7 @@ class GoogleAuthView(LogoutRequiredMixin, View):
         user = register_social_user(
             request, user_data["email"], user_data["name"], user_data["picture"]
         )
+        move_wishlist_and_cart_items_to_user(request, user)
         login(request, user)
         return redirect("/")
 
@@ -39,6 +42,7 @@ class FacebookAuthView(LogoutRequiredMixin, View):
         auth_token = request.GET.get("auth_token")
         user_data = Facebook.validate(auth_token)
         user = register_social_user(request, user_data["email"], user_data["name"])
+        move_wishlist_and_cart_items_to_user(request, user)
         login(request, user)
         return redirect("/")
 

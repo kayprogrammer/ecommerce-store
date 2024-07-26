@@ -70,6 +70,7 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_display = ("user", "guest_id", "product", "quantity", "created_at")
     list_filter = list_display
 
+
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ("user", "product", "rating", "created_at", "updated_at")
     list_filter = list_display

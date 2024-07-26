@@ -242,7 +242,7 @@ class OrderItem(BaseModel):
                     "color",
                 ],
                 name="unique_user_product_order_orderitems",
-                condition=models.Q(order__isnull=False)
+                condition=models.Q(order__isnull=False),
             ),
             models.UniqueConstraint(
                 fields=[

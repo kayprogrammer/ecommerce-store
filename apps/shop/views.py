@@ -1,4 +1,3 @@
-import decimal
 from django.http import Http404, JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views import View
@@ -28,9 +27,10 @@ from .utils import (
     colour_size_filter_products,
     generic_products_ctx,
     get_user_or_guest_id,
+    update_product_in_stock,
     verify_webhook_signature,
 )
-import sweetify, hashlib, hmac, json
+import sweetify, hashlib, hmac, json, decimal
 
 PRODUCTS_PER_PAGE = 15
 
@@ -42,11 +42,14 @@ class ProductsView(ListView):
     context_object_name = "products"
 
     def get_queryset(self):
-        products = Product.objects.annotate(**REVIEWS_AND_RATING_ANNOTATION).order_by(
-            "-created_at"
+        name_filter = self.request.GET.get("name")
+        products = Product.objects.annotate(**REVIEWS_AND_RATING_ANNOTATION).filter(
+            in_stock__gt=0
         )
+        if name_filter:
+            products = products.filter(name__icontains=name_filter)
         return colour_size_filter_products(
-            products,
+            products.order_by("-created_at"),
             self.request.GET.getlist("size"),
             self.request.GET.getlist("color"),
         )
@@ -61,8 +64,10 @@ class ProductsView(ListView):
 
 class ProductView(View):
     def get(self, request, *args, **kwargs):
-        products = Product.objects.select_related("category").annotate(
-            **REVIEWS_AND_RATING_ANNOTATION
+        products = (
+            Product.objects.filter(in_stock__gt=0)
+            .select_related("category")
+            .annotate(**REVIEWS_AND_RATING_ANNOTATION)
         )
         product = products.prefetch_related("sizes", "colours", "reviews").get_or_none(
             slug=kwargs["slug"]
@@ -80,7 +85,9 @@ class WishlistView(ListView):
     def get(self, request):
         user, guest_id = get_user_or_guest_id(self.request)
         products = (
-            Product.objects.filter(wishlist__user=user, wishlist__guest_id=guest_id)
+            Product.objects.filter(
+                in_stock__gt=0, wishlist__user=user, wishlist__guest_id=guest_id
+            )
             .annotate(**REVIEWS_AND_RATING_ANNOTATION)
             .order_by("-created_at")
         )
@@ -102,7 +109,7 @@ class WishlistView(ListView):
 class ToggleWishlist(View):
     def get(self, request, *args, **kwargs):
         # Add or remove product from wishlist
-        product = get_object_or_404(Product, slug=kwargs["slug"])
+        product = get_object_or_404(Product, slug=kwargs["slug"], in_stock__gt=0)
         user, guest_id = get_user_or_guest_id(request)
         wishlist, created = None, None
         wishlist, created = Wishlist.objects.get_or_create(
@@ -125,7 +132,7 @@ class ProductsByCategoryView(ListView):
     def get_queryset(self):
         category = get_object_or_404(Category, slug=self.kwargs["slug"])
         products = (
-            Product.objects.filter(category=category)
+            Product.objects.filter(category=category, in_stock__gt=0)
             .annotate(**REVIEWS_AND_RATING_ANNOTATION)
             .order_by("-created_at")
         )
@@ -204,7 +211,7 @@ class ToggleCartView(View):
         action = request.GET.get("action")  # For cart action
         size = request.GET.get("size")
         color = request.GET.get("color")
-        product = get_object_or_404(Product, slug=kwargs["slug"])
+        product = get_object_or_404(Product, slug=kwargs["slug"], in_stock__gt=0)
         if size:
             size = product.sizes.get_or_none(value=size)
             if not size:
@@ -282,7 +289,9 @@ class CheckoutView(LoginRequiredMixin, View):
         )
         if not order:
             raise Http404("Order Not Found")
-        shipping_address = ShippingAddress.objects.filter(user=user).order_by("created_at").last()
+        shipping_address = (
+            ShippingAddress.objects.filter(user=user).order_by("created_at").last()
+        )
         form = ShippingAddressForm(instance=shipping_address)
         context = {"order": order, "form": form}
         return render(request, "shop/checkout.html", context=context)
@@ -378,7 +387,11 @@ def paystack_webhook(request):
     if event == "charge.success":
         data = body["data"]
         if (data["status"] == "success") and (data["gateway_response"] == "Successful"):
-            order = Order.objects.get_or_none(tx_ref=data["reference"])
+            order = (
+                Order.objects.prefetch_related("orderitems")
+                .prefetch_related("orderitems__product")
+                .get_or_none(tx_ref=data["reference"])
+            )
             amount_paid = data["amount"] / 100
             if not order:
                 customer = data["customer"]
@@ -399,6 +412,7 @@ def paystack_webhook(request):
 
             order.payment_status = "SUCCESSFUL"
             order.save()
+            update_product_in_stock(order.orderitems.all())
             # Send email
             EmailUtil.send_payment_success_email(
                 request, user.full_name, user.email, amount_payable
@@ -419,7 +433,15 @@ def paypal_webhook(request):
     auth_algo = headers.get("Paypal-Auth-Algo")
     transmission_sig = headers.get("Paypal-Transmission-Sig")
     webhook_id = settings.PAYPAL_WEBHOOK_ID
-    valid_sig = verify_webhook_signature(transmission_sig, transmission_id, transmission_time, webhook_id, payload.decode('utf-8'), cert_url, auth_algo)
+    valid_sig = verify_webhook_signature(
+        transmission_sig,
+        transmission_id,
+        transmission_time,
+        webhook_id,
+        payload.decode("utf-8"),
+        cert_url,
+        auth_algo,
+    )
     if valid_sig:
         event = json.loads(payload)
 
@@ -428,7 +450,11 @@ def paypal_webhook(request):
             resource = event["resource"]
             purchase_unit = resource["purchase_units"][0]
             amount_paid = decimal.Decimal(purchase_unit["amount"]["value"])
-            order = Order.objects.get_or_none(tx_ref=purchase_unit["reference_id"])
+            order = (
+                Order.objects.prefetch_related("orderitems")
+                .prefetch_related("orderitems__product")
+                .get_or_none(tx_ref=purchase_unit["reference_id"])
+            )
             if not order:
                 return HttpResponse(status=200)
             if order.payment_status != "SUCCESSFUL":
@@ -445,6 +471,8 @@ def paypal_webhook(request):
 
                 order.payment_status = "SUCCESSFUL"
                 order.save()
+
+                update_product_in_stock(order.orderitems.all())
                 # Send email
                 EmailUtil.send_payment_success_email(
                     request, user.full_name, user.email, amount_payable
@@ -452,4 +480,3 @@ def paypal_webhook(request):
         return HttpResponse(status=200)
     else:
         return HttpResponse(status=200)
-    
