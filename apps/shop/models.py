@@ -1,4 +1,3 @@
-import random
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -213,8 +212,8 @@ class Order(BaseModel):
 
 
 class OrderItem(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    guest_id = models.CharField(max_length=100, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    guest_id = models.CharField(max_length=100, null=True, blank=True)
     order = models.ForeignKey(
         Order,
         related_name="orderitems",
@@ -226,7 +225,6 @@ class OrderItem(BaseModel):
     quantity = models.PositiveIntegerField(default=1)
     size = models.ForeignKey(Size, on_delete=models.CASCADE, null=True)
     color = models.ForeignKey(Colour, on_delete=models.CASCADE, null=True)
-    ordered = models.BooleanField(default=False, editable=False)
 
     @property
     def get_total(self):
@@ -236,11 +234,45 @@ class OrderItem(BaseModel):
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "product", "order_id", "size_id", "color_id"],
-                name="unique_user_product_orderitems",
+                fields=[
+                    "user",
+                    "product",
+                    "order",
+                    "size",
+                    "color",
+                ],
+                name="unique_user_product_order_orderitems",
+                condition=models.Q(order__isnull=False)
             ),
             models.UniqueConstraint(
-                fields=["guest_id", "product", "order_id", "size_id", "color_id"],
+                fields=[
+                    "user",
+                    "product",
+                    "size",
+                    "color",
+                ],
+                name="unique_user_product_orderitems",
+                condition=models.Q(order__isnull=True),
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "guest_id",
+                    "product",
+                    "order",
+                    "size",
+                    "color",
+                ],
+                condition=models.Q(order__isnull=False),
+                name="unique_guest_id_product_order_orderitems",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "guest_id",
+                    "product",
+                    "size",
+                    "color",
+                ],
+                condition=models.Q(order__isnull=True),
                 name="unique_guest_id_product_orderitems",
             ),
         ]
@@ -250,8 +282,10 @@ class OrderItem(BaseModel):
 
     def save(self, *args, **kwargs):
         if self._state.adding:
-            self.color = self.product.default_color
-            self.size = self.product.default_size
+            if not self.color:
+                self.color = self.product.default_color
+            if not self.size:
+                self.size = self.product.default_size
         return super(OrderItem, self).save(*args, **kwargs)
 
 

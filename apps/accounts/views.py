@@ -28,7 +28,7 @@ class GoogleAuthView(LogoutRequiredMixin, View):
             # Invalid client id
             return redirect("/")
         user = register_social_user(
-            user_data["email"], user_data["name"], user_data["picture"]
+            request, user_data["email"], user_data["name"], user_data["picture"]
         )
         login(request, user)
         return redirect("/")
@@ -38,7 +38,7 @@ class FacebookAuthView(LogoutRequiredMixin, View):
     def get(self, request):
         auth_token = request.GET.get("auth_token")
         user_data = Facebook.validate(auth_token)
-        user = register_social_user(user_data["email"], user_data["name"])
+        user = register_social_user(request, user_data["email"], user_data["name"])
         login(request, user)
         return redirect("/")
 

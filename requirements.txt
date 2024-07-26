@@ -4,13 +4,14 @@ certifi==2024.2.2
 charset-normalizer==3.3.2
 cloudinary==1.40.0
 diff-match-patch==20230430
-Django==4.0
+Django==5.0
 django-autoslug==1.9.9
 django-cloudinary-storage==0.3.0
 django-debug-toolbar==4.3.0
 django-htmx==1.18.0
 django-import-export==4.0.0
 django-jazzmin==2.6.2
+facebook-sdk==3.1.0
 google-api-core==2.19.0
 google-api-python-client==2.127.0
 google-auth==2.29.0

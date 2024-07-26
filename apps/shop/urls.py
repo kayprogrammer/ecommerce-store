@@ -31,4 +31,6 @@ urlpatterns = [
         views.UpdateOrderView.as_view(),
         name="update-order",
     ),
+    path("paystack-webhook/", views.paystack_webhook),
+    path("paypal-webhook/", views.paypal_webhook),
 ]

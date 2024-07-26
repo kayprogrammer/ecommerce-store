@@ -3,6 +3,8 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 import facebook
 
+from apps.accounts.senders import EmailUtil
+
 from .models import DEFAULT_AVATAR_URL, User
 
 
@@ -42,7 +44,7 @@ class Facebook:
             return None
 
 
-def register_social_user(email: str, name: str, avatar: str = None):
+def register_social_user(request, email: str, name: str, avatar: str = None):
     user = User.objects.get_or_none(email=email)
     if not user:
         name = name.split()
@@ -55,4 +57,5 @@ def register_social_user(email: str, name: str, avatar: str = None):
             password=settings.SOCIAL_SECRET,
             avatar=avatar or DEFAULT_AVATAR_URL,
         )
+        EmailUtil.send_welcome_email(request, user)
     return user

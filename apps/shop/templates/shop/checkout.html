@@ -56,6 +56,7 @@
                 } else if (response.payment_method === 'PAYPAL') {
                     // Initialize PayPal payment
                     const paypalContainer = $('<div id="paypal-button-container"></div>');
+                    $('input[type=radio][value="PAYSTACK"]').prop('disabled', true);
                     $("#submit-btn").replaceWith(paypalContainer)
                     payWithPaypal(response)
                 }
@@ -67,7 +68,9 @@
             let handler = PaystackPop.setup({
 
             key: "{{ sitedetail.paystack_public_key }}", 
-
+            
+            firstname: resp.first_name,
+            lastname: resp.last_name,
             email: resp.email,
 
             amount: resp.amount,
@@ -100,7 +103,15 @@
                             },
                             custom_id: resp.tx_ref,
                             invoice_id: resp.tx_ref,
-                        }]
+                            reference_id: resp.tx_ref,
+                        }],
+                        payer: {
+                            email_address: resp.email,
+                            name: {
+                                given_name: resp.first_name,
+                                surname: resp.last_name
+                            }
+                        }
                     });
                 },
                 onApprove: function(data, actions) {

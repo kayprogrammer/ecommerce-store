@@ -15,7 +15,7 @@ class EmailThread(threading.Thread):
         self.email.send()
 
 
-class Util:
+class EmailUtil:
     @staticmethod
     def send_welcome_email(request: HttpRequest, user: User):
         current_site = f"{request.scheme}://{request.get_host()}"
@@ -30,5 +30,44 @@ class Util:
         )
 
         email_message = EmailMessage(subject=subject, body=message, to=[user.email])
+        email_message.content_subtype = "html"
+        EmailThread(email_message).start()
+
+    @staticmethod
+    def send_payment_failed_email(request: HttpRequest, name, email, amount):
+        if not email:
+            return
+        current_site = f"{request.scheme}://{request.get_host()}"
+        subject = "Payment Unverified"
+        message = render_to_string(
+            "shop/payment_failed_email.html",
+            {
+                "domain": current_site,
+                "name": name,
+                "amount": amount,
+                "site_name": settings.SITE_NAME,
+            },
+        )
+
+        email_message = EmailMessage(subject=subject, body=message, to=[email])
+        email_message.content_subtype = "html"
+        EmailThread(email_message).start()
+
+    def send_payment_success_email(request: HttpRequest, name, email, amount):
+        if not email:
+            return
+        current_site = f"{request.scheme}://{request.get_host()}"
+        subject = "Payment Verified"
+        message = render_to_string(
+            "shop/payment_success_email.html",
+            {
+                "domain": current_site,
+                "name": name,
+                "amount": amount,
+                "site_name": settings.SITE_NAME,
+            },
+        )
+
+        email_message = EmailMessage(subject=subject, body=message, to=[email])
         email_message.content_subtype = "html"
         EmailThread(email_message).start()

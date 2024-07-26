@@ -1,7 +1,9 @@
-from django.http import Http404, JsonResponse
+import decimal
+from django.http import Http404, JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views import View
 from django.views.generic import ListView
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -9,6 +11,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from apps.accounts.mixins import LoginRequiredMixin
+from apps.accounts.senders import EmailUtil
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
 from .forms import ShippingAddressForm
 from .models import (
@@ -25,8 +28,9 @@ from .utils import (
     colour_size_filter_products,
     generic_products_ctx,
     get_user_or_guest_id,
+    verify_webhook_signature,
 )
-import sweetify
+import sweetify, hashlib, hmac, json
 
 PRODUCTS_PER_PAGE = 15
 
@@ -162,7 +166,7 @@ class CartView(View):
         user = request.user
         coupon_code = request.POST.get("coupon")
         coupon = None
-        orderitems = OrderItem.objects.filter(user=user, ordered=False)
+        orderitems = OrderItem.objects.filter(user=user, order=None)
         if not orderitems.exists():
             return redirect(reverse("cart"))
         if coupon_code:
@@ -188,7 +192,7 @@ class CartView(View):
                 )
                 return redirect(reverse("cart"))
         order = Order.objects.create(user=user, coupon=coupon)
-        orderitems.update(order=order, ordered=True)
+        orderitems.update(order=order)
         return redirect(reverse("checkout", kwargs={"tx_ref": order.tx_ref}))
 
 
@@ -214,7 +218,7 @@ class ToggleCartView(View):
         orderitem, created = OrderItem.objects.get_or_create(
             user=user,
             guest_id=guest_id,
-            ordered=False,
+            order_id=None,
             product=product,
             size=size,
             color=color,
@@ -233,7 +237,7 @@ class ToggleCartView(View):
                 if action == "remove" or orderitem.quantity == 1:
                     orderitem.delete()
                     response_data["cart_items_count"] = OrderItem.objects.filter(
-                        user=user, guest_id=guest_id, ordered=False
+                        user=user, guest_id=guest_id, order=None
                     ).count()
                     if page == "cart":
                         response_data["remove"] = True
@@ -260,7 +264,7 @@ class CheckProductIsInCartView(View):
         if color:
             color = product.colours.get_or_none(value=color)
             if not color:
-                return JsonResponse({"error": "Invalid size selected"})
+                return JsonResponse({"error": "Invalid color selected"})
 
         is_in_cart = OrderItem.objects.filter(
             user=user, guest_id=guest_id, product=product, size=size, color=color
@@ -278,7 +282,7 @@ class CheckoutView(LoginRequiredMixin, View):
         )
         if not order:
             raise Http404("Order Not Found")
-        shipping_address = ShippingAddress.objects.order_by("created_at").last()
+        shipping_address = ShippingAddress.objects.filter(user=user).order_by("created_at").last()
         form = ShippingAddressForm(instance=shipping_address)
         context = {"order": order, "form": form}
         return render(request, "shop/checkout.html", context=context)
@@ -305,8 +309,13 @@ class CheckoutView(LoginRequiredMixin, View):
                 {
                     "payment_method": payment_method,
                     "tx_ref": order.tx_ref,
-                    "amount": order.get_cart_total * 100 if payment_method == "PAYSTACK" else order.get_cart_total,
-                    "name": user.full_name,
+                    "amount": (
+                        order.get_cart_total * 100
+                        if payment_method == "PAYSTACK"
+                        else order.get_cart_total
+                    ),
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
                     "email": user.email,
                 }
             )
@@ -336,3 +345,111 @@ class OrdersView(LoginRequiredMixin, View):
         )
         context = {"orders": orders}
         return render(request, "shop/orders.html", context)
+
+
+@csrf_exempt
+def paystack_webhook(request):
+    # retrive the payload from the request body
+    payload = request.body
+    # signature header to to verify the request is from paystack
+    sig_header = request.headers["x-paystack-signature"]
+    body, event = None, None
+
+    try:
+        # sign the payload with `HMAC SHA512`
+        hash = hmac.new(
+            settings.PAYSTACK_SECRET_KEY.encode("utf-8"),
+            payload,
+            digestmod=hashlib.sha512,
+        ).hexdigest()
+        # compare our signature with paystacks signature
+        if hash == sig_header:
+            # if signature matches,
+            # proceed to retrive event status from payload
+            body_unicode = payload.decode("utf-8")
+            body = json.loads(body_unicode)
+            # event status
+            event = body["event"]
+        else:
+            raise Exception
+    except Exception as e:
+        return HttpResponse(status=400)
+
+    if event == "charge.success":
+        data = body["data"]
+        if (data["status"] == "success") and (data["gateway_response"] == "Successful"):
+            order = Order.objects.get_or_none(tx_ref=data["reference"])
+            amount_paid = data["amount"] / 100
+            if not order:
+                customer = data["customer"]
+                name = f"{customer.get('first_name', "John")} {customer.get("last_name", "Doe")}"
+                email = customer.get("email")
+                EmailUtil.send_payment_failed_email(request, name, email, amount_paid)
+                return HttpResponse(status=200)
+            amount_payable = order.get_cart_total
+            user = order.user
+            if amount_paid < amount_payable:
+                # You made an invalid payment
+                EmailUtil.send_payment_failed_email(
+                    request, user.full_name, user.email, amount_paid
+                )
+                order.payment_status = "FAILED"
+                order.save()
+                return HttpResponse(status=200)
+
+            order.payment_status = "SUCCESSFUL"
+            order.save()
+            # Send email
+            EmailUtil.send_payment_success_email(
+                request, user.full_name, user.email, amount_payable
+            )
+        else:
+            return HttpResponse(status=200)
+    return HttpResponse(status=200)
+
+
+@csrf_exempt
+def paypal_webhook(request):
+    payload = request.body
+    headers = request.headers
+    # Verify webhook signature
+    transmission_id = headers.get("Paypal-Transmission-Id")
+    transmission_time = headers.get("Paypal-Transmission-Time")
+    cert_url = headers.get("Paypal-Cert-Url")
+    auth_algo = headers.get("Paypal-Auth-Algo")
+    transmission_sig = headers.get("Paypal-Transmission-Sig")
+    webhook_id = settings.PAYPAL_WEBHOOK_ID
+    valid_sig = verify_webhook_signature(transmission_sig, transmission_id, transmission_time, webhook_id, payload.decode('utf-8'), cert_url, auth_algo)
+    if valid_sig:
+        event = json.loads(payload)
+
+        if event["event_type"] == "CHECKOUT.ORDER.APPROVED":
+            # Handle payment completed event
+            resource = event["resource"]
+            purchase_unit = resource["purchase_units"][0]
+            amount_paid = decimal.Decimal(purchase_unit["amount"]["value"])
+            order = Order.objects.get_or_none(tx_ref=purchase_unit["reference_id"])
+            if not order:
+                return HttpResponse(status=200)
+            if order.payment_status != "SUCCESSFUL":
+                user = order.user
+                amount_payable = order.get_cart_total
+                if amount_paid < amount_payable:
+                    # You made an invalid payment
+                    EmailUtil.send_payment_failed_email(
+                        request, user.full_name, user.email, amount_paid
+                    )
+                    order.payment_status = "FAILED"
+                    order.save()
+                    return HttpResponse(status=200)
+
+                order.payment_status = "SUCCESSFUL"
+                order.save()
+                # Send email
+                EmailUtil.send_payment_success_email(
+                    request, user.full_name, user.email, amount_payable
+                )
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=200)
+    
