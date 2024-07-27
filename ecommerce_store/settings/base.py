@@ -44,7 +44,6 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.common",
     "apps.accounts",
-    "apps.profiles",
     "apps.general",
     "apps.shop",
 ]
@@ -66,7 +65,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
-    # "apps.general.middlewares.TimezoneMiddleware",
 ]
 
 ROOT_URLCONF = "ecommerce_store.urls"

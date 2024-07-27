@@ -23,10 +23,10 @@ class TestAccounts(TestCase):
         self.assertTemplateUsed(response, "accounts/login.html")
 
     def test_logout(self):
-        verified_user = self.new_user
+        user = self.new_user
 
         # Ensures A user logs out successfully
-        self.client.login(email=verified_user.email, password="testpassword")
+        self.client.login(email=user.email, password="testpassword")
         response = self.client.get(self.logout_url)
         self.assertRedirects(
             response,

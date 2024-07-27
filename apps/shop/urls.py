@@ -9,7 +9,7 @@ urlpatterns = [
         views.ProductsByCategoryView.as_view(),
         name="category_products",
     ),
-    path("wishlist", views.WishlistView.as_view(), name="wishlist"),
+    path("wishlist/", views.WishlistView.as_view(), name="wishlist"),
     path(
         "toggle-wishlist/<slug:slug>/",
         views.ToggleWishlist.as_view(),

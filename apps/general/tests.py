@@ -13,7 +13,6 @@ class TestGeneral(TestCase):
     contact_url = reverse("contact")
 
     def setUp(self):
-        user = TestUtil.new_user()
         product = TestUtil.create_product()
         self.product = product
 

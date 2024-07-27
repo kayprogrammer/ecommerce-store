@@ -1,8 +1,19 @@
+from datetime import timedelta
 from django.db.models import Avg, Value, FloatField, Count
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from apps.accounts.models import User
-from apps.shop.models import Category, Colour, Country, Product, Size
+from apps.shop.models import (
+    Category,
+    Colour,
+    Country,
+    Coupon,
+    Order,
+    OrderItem,
+    Product,
+    Size,
+    Wishlist,
+)
 
 REVIEWS_AND_RATING_ANNOTATION = {
     "reviews_count": Count("reviews"),
@@ -60,6 +71,28 @@ class TestUtil:
         product.colours.add(color)
         return product
 
-    def create_country(self):
+    def create_country():
         country, _ = Country.objects.get_or_create(name="TestCountry", code="TC")
         return country
+
+    def create_wishlist(user, product):
+        wishlist, _ = Wishlist.objects.get_or_create(user=user, product=product)
+        return wishlist
+
+    def create_orderitem(user, product):
+        orderitem, _ = OrderItem.objects.get_or_create(user=user, product=product)
+        return orderitem
+
+    def create_order(user):
+        order, _ = Order.objects.get_or_create(user=user)
+        product = TestUtil.create_product()
+        orderitem = TestUtil.create_orderitem(user, product)
+        orderitem.order = order
+        orderitem.save()
+        return order
+
+    def create_coupon():
+        coupon, _ = Coupon.objects.get_or_create(
+            expiry_date=timezone.now() + timedelta(days=1)
+        )
+        return coupon
