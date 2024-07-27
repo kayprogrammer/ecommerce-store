@@ -1,4 +1,4 @@
-<form class="row px-xl-5" hx-post="{% url 'checkout' order.tx_ref %}" hx-target="this" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' id="checkout-form">
+<form method="post" class="row px-xl-5" hx-post="{% url 'checkout' order.tx_ref %}" hx-target="this" hx-swap="none" id="checkout-form">
     {% csrf_token %}
     <div class="col-lg-8">
         <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Billing Address</span></h5>

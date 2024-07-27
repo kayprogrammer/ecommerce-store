@@ -27,100 +27,106 @@
 
 
     <!-- Checkout Start -->
-    <div class="container-fluid">
+    <div class="container-fluid" id="form-container">
         {% include 'shop/checkout_form.html' %}
     </div>
     <!-- Checkout End -->
 {% endblock %}
 
 {% block js %}
-    <script>
-        const checkoutForm = document.getElementById('checkout-form')
-        const button = document.getElementById('submit-btn');
-        checkoutForm.addEventListener('htmx:configRequest', function(event) {
-            if (event.detail.elt.matches('form')) {
-                button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-                button.disabled = true;
-            }
-        });
-
-        checkoutForm.addEventListener('htmx:beforeSwap', function(event) {
-            const contentType = event.detail.xhr.getResponseHeader('Content-Type');
-            if (contentType && contentType.indexOf('application/json') !== -1) {
-                event.detail.shouldSwap = false; // Prevent the swap
-                const response = JSON.parse(event.detail.xhr.response);
-                console.log(response)
-                // Handle the payment logic based on the payment method
-                if (response.payment_method === 'PAYSTACK') {
-                    payWithPaystack(response);
-                } else if (response.payment_method === 'PAYPAL') {
-                    // Initialize PayPal payment
-                    const paypalContainer = $('<div id="paypal-button-container"></div>');
-                    $('input[type=radio][value="PAYSTACK"]').prop('disabled', true);
-                    $("#submit-btn").replaceWith(paypalContainer)
-                    payWithPaypal(response)
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkoutForm = document.getElementById('checkout-form')
+            const button = document.getElementById('submit-btn');
+            document.addEventListener('htmx:configRequest', function(event) {
+                if (event.detail.elt.matches('form')) {
+                    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                    button.disabled = true;
                 }
-            }
-        });
-
-        
-        function payWithPaystack(resp) {
-            let handler = PaystackPop.setup({
-
-            key: "{{ sitedetail.paystack_public_key }}", 
-            
-            firstname: resp.first_name,
-            lastname: resp.last_name,
-            email: resp.email,
-
-            amount: resp.amount,
-
-            ref: resp.tx_ref,
-
-            onClose: function(){
-                window.location.href = `/shop/orders/${resp.tx_ref}/update/?payment_status=CANCELLED`
-
-            },
-
-            callback: function(response){
-                window.location.href = "/shop/orders/"
-            }
-
             });
 
-            handler.openIframe();
+            document.addEventListener('htmx:beforeSwap', function(event) {
+                const contentType = event.detail.xhr.getResponseHeader('Content-Type');
+                if (contentType && contentType.indexOf('application/json') !== -1) {
+                    event.detail.shouldSwap = false; // Prevent the swap
+                    const response = JSON.parse(event.detail.xhr.response);
 
-        }
-
-        function payWithPaypal(resp) {
-            // Render the PayPal button
-            paypal.Buttons({
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: resp.amount // The amount to be paid
-                            },
-                            custom_id: resp.tx_ref,
-                            invoice_id: resp.tx_ref,
-                            reference_id: resp.tx_ref,
-                        }],
-                        payer: {
-                            email_address: resp.email,
-                            name: {
-                                given_name: resp.first_name,
-                                surname: resp.last_name
-                            }
+                    if (response.success) {
+                        // Handle the payment logic based on the payment method
+                        if (response.payment_method === 'PAYSTACK') {
+                            payWithPaystack(response);
+                        } else if (response.payment_method === 'PAYPAL') {
+                            // Initialize PayPal payment
+                            const paypalContainer = $('<div id="paypal-button-container"></div>');
+                            $('input[type=radio][value="PAYSTACK"]').prop('disabled', true);
+                            $("#submit-btn").replaceWith(paypalContainer)
+                            payWithPaypal(response)
                         }
-                    });
-                },
-                onApprove: function(data, actions) {
-                    window.location.href = "/shop/orders/"
-                },
-                onError: function(err) {
-                    window.location.href = `/shop/orders/${resp.tx_ref}/update/?payment_status=FAILED`
+                    }
+                    document.querySelector("#form-container").innerHTML = response.html;
+                    htmx.process(document.querySelector("#form-container")); // Reinitialize HTMX on the new content
                 }
-            }).render("#paypal-button-container");
-        }
+            });
+
+            
+            function payWithPaystack(resp) {
+                let handler = PaystackPop.setup({
+
+                key: "{{ sitedetail.paystack_public_key }}", 
+                
+                firstname: resp.first_name,
+                lastname: resp.last_name,
+                email: resp.email,
+
+                amount: resp.amount,
+
+                ref: resp.tx_ref,
+
+                onClose: function(){
+                    window.location.href = `/shop/orders/${resp.tx_ref}/update/?payment_status=CANCELLED`
+
+                },
+
+                callback: function(response){
+                    window.location.href = "/shop/orders/"
+                }
+
+                });
+
+                handler.openIframe();
+
+            }
+
+            function payWithPaypal(resp) {
+                // Render the PayPal button
+                paypal.Buttons({
+                    createOrder: function(data, actions) {
+                        return actions.order.create({
+                            purchase_units: [{
+                                amount: {
+                                    value: resp.amount // The amount to be paid
+                                },
+                                custom_id: resp.tx_ref,
+                                invoice_id: resp.tx_ref,
+                                reference_id: resp.tx_ref,
+                            }],
+                            payer: {
+                                email_address: resp.email,
+                                name: {
+                                    given_name: resp.first_name,
+                                    surname: resp.last_name
+                                }
+                            }
+                        });
+                    },
+                    onApprove: function(data, actions) {
+                        window.location.href = "/shop/orders/"
+                    },
+                    onError: function(err) {
+                        window.location.href = `/shop/orders/${resp.tx_ref}/update/?payment_status=FAILED`
+                    }
+                }).render("#paypal-button-container");
+            }
+        })
     </script>
 {% endblock %}

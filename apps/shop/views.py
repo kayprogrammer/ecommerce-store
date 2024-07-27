@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.template.loader import render_to_string
 from apps.accounts.mixins import LoginRequiredMixin
 from apps.accounts.senders import EmailUtil
 from apps.common.utils import REVIEWS_AND_RATING_ANNOTATION
@@ -109,7 +110,9 @@ class ProductView(View):
             instance.product = product
             instance.user = user
             instance.save()
-            sweetify.success(request, title="Success", text="Review sent", timer=2500, button="OK")
+            sweetify.success(
+                request, title="Success", text="Review sent", timer=2500, button="OK"
+            )
             return redirect(reverse("product", kwargs={"slug": slug}))
         context = {
             "product": product,
@@ -345,6 +348,10 @@ class CheckoutView(LoginRequiredMixin, View):
         if not order:
             raise Http404("Order Not Found")
         form = ShippingAddressForm(request.POST)
+        context = {"form": form, "order": order}
+        html_response_to_return = render_to_string(
+            "shop/checkout_form.html", context, request=request
+        )
         if form.is_valid():
             payment_method = form.cleaned_data.get("payment_method")
             new_shipping_address = form.save(commit=False)
@@ -356,6 +363,8 @@ class CheckoutView(LoginRequiredMixin, View):
             order.save()
             return JsonResponse(
                 {
+                    "success": True,
+                    "html": html_response_to_return,
                     "payment_method": payment_method,
                     "tx_ref": order.tx_ref,
                     "amount": (
@@ -368,9 +377,7 @@ class CheckoutView(LoginRequiredMixin, View):
                     "email": user.email,
                 }
             )
-
-        context = {"order": order, "form": form}
-        return render(request, "shop/checkout_form.html", context=context)
+        return JsonResponse({"html": html_response_to_return})
 
 
 class UpdateOrderView(LoginRequiredMixin, View):
