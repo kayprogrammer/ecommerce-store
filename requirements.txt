@@ -1,8 +1,10 @@
 asgiref==3.8.1
 cachetools==5.3.3
 certifi==2024.2.2
+cffi==1.16.0
 charset-normalizer==3.3.2
 cloudinary==1.40.0
+cryptography==43.0.0
 diff-match-patch==20230430
 Django==5.0
 django-autoslug==1.9.9
@@ -28,6 +30,7 @@ protobuf==4.25.3
 psycopg2-binary==2.9.9
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
+pycparser==2.22
 pyparsing==3.1.2
 pytest==8.2.0
 pytest-django==4.8.0
@@ -38,6 +41,7 @@ six==1.16.0
 sqlparse==0.5.0
 sweetify==2.3.1
 tablib==3.5.0
+tenacity==8.5.0
 uritemplate==4.1.1
 urllib3==2.2.1
 whitenoise==6.6.0

@@ -144,8 +144,14 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static/"),
 ]
 MEDIA_ROOT = os.path.join(BASE_DIR, "static/media")
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),

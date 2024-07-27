@@ -442,7 +442,7 @@ def paystack_webhook(request):
             amount_paid = data["amount"] / 100
             if not order:
                 customer = data["customer"]
-                name = f"{customer.get('first_name', "John")} {customer.get("last_name", "Doe")}"
+                name = f"{customer.get('first_name', 'John')} {customer.get('last_name', 'Doe')}"
                 email = customer.get("email")
                 EmailUtil.send_payment_failed_email(request, name, email, amount_paid)
                 return HttpResponse(status=200)
