@@ -29,7 +29,7 @@ class HomeView(View):
                 button="OK",
                 timer=3000,
             )
-        return redirect(request.META.get("HTTP_REFERER"))
+        return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
 class ContactView(View):
@@ -38,7 +38,6 @@ class ContactView(View):
         return render(request, "general/contact.html", context={"form": form})
 
     def post(self, request):
-        print("Haaa")
         # Subscribe to newsletter
         form = MessageForm(request.POST)
         if form.is_valid():

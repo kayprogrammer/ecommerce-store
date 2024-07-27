@@ -9,6 +9,7 @@ REVIEWS_AND_RATING_ANNOTATION = {
     "avg_rating": Coalesce(Avg("reviews__rating"), Value(0), output_field=FloatField()),
 }
 
+
 class TestUtil:
     def new_user():
         user_dict = {
@@ -33,13 +34,13 @@ class TestUtil:
     def create_category():
         category, _ = Category.objects.get_or_create(name="TestCategory")
         return category
-    
+
     def create_size_and_color():
         size, _ = Size.objects.get_or_create(value="M")
         color, _ = Colour.objects.get_or_create(value="Black")
         return size, color
-    
-    def create_product(user):
+
+    def create_product():
         # Create Category
         category = TestUtil.create_category()
         size, color = TestUtil.create_size_and_color()
@@ -52,11 +53,13 @@ class TestUtil:
             "price_current": 500.00,
             "in_stock": 100,
         }
-        product, _ = Product.objects.get_or_create(name=product_dict["name"], defaults=product_dict)
+        product, _ = Product.objects.get_or_create(
+            name=product_dict["name"], defaults=product_dict
+        )
         product.sizes.add(size)
         product.colours.add(color)
         return product
-    
+
     def create_country(self):
         country, _ = Country.objects.get_or_create(name="TestCountry", code="TC")
         return country
