@@ -3,7 +3,7 @@
 ![alt text](https://github.com/kayprogrammer/ecommerce-store/blob/main/display/django.png?raw=true)
 
 
-#### Django Docs: [Documentation](https://docs.djangoproject.com/en/4.2/)
+#### Django Docs: [Documentation](https://docs.djangoproject.com/en/5.0/)
 #### PG ADMIN: [pgadmin.org](https://www.pgadmin.org) 
 
 
