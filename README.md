@@ -1,4 +1,4 @@
-# ECOMMERCE STORE (MVT)
+# ECOMMERCE STORE (DJANGO MVT)
 
 ![alt text](https://github.com/kayprogrammer/ecommerce-store/blob/main/display/django.png?raw=true)
 
