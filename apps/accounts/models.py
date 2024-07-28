@@ -1,10 +1,9 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from apps.common.models import BaseModel
 from .managers import CustomUserManager
-
-DEFAULT_AVATAR_URL = "https://res.cloudinary.com/kay-development/image/upload/v1679787683/important/brad_dozo7x.jpg"
 
 
 class User(AbstractBaseUser, BaseModel, PermissionsMixin):
@@ -15,7 +14,7 @@ class User(AbstractBaseUser, BaseModel, PermissionsMixin):
         verbose_name=(_("Last name")), max_length=25, null=True
     )
     email = models.EmailField(verbose_name=(_("Email address")), unique=True)
-    avatar = models.URLField(default=DEFAULT_AVATAR_URL)
+    avatar = models.URLField(default=settings.DEFAULT_AVATAR_URL)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
