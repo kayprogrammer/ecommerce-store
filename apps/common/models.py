@@ -32,8 +32,8 @@ def generate_unique_code(model: BaseModel, field):
     allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
     unique_code = "".join(secrets.choice(allowed_chars) for i in range(12))
     code = unique_code
-    similar_coupon = model.objects.filter(**{field: code}).exists()
-    if not similar_coupon:
+    similar_object_exists = model.objects.filter(**{field: code}).exists()
+    if not similar_object_exists:
         return code
     generate_unique_code()
 
