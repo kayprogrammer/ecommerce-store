@@ -5,7 +5,7 @@ import facebook
 
 from apps.accounts.senders import EmailUtil
 
-from .models import DEFAULT_AVATAR_URL, User
+from .models import User
 
 
 class Google:
@@ -55,7 +55,7 @@ def register_social_user(request, email: str, name: str, avatar: str = None):
             last_name=last_name,
             email=email,
             password=settings.SOCIAL_SECRET,
-            avatar=avatar or DEFAULT_AVATAR_URL,
+            avatar=avatar or settings.DEFAULT_AVATAR_URL,
         )
         EmailUtil.send_welcome_email(request, user)
     return user
